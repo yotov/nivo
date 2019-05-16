@@ -8,10 +8,14 @@
  */
 import { settingsMapper } from '../../../lib/settings'
 
+const labelMapper = value => {
+    if (value === `n => \`\${n.name} (\${n.formattedValue})\``) {
+        return n => `${n.name} (${n.formattedValue})`
+    }
+    return value
+}
+
 export default settingsMapper({
-    label: value => {
-        if (value === `d => \`\${d.name} (\${d.loc})\``) return d => `${d.name} (${d.loc})`
-        return value
-    },
-    labelFormat: (value, settings) => (settings.label === 'loc' ? value : undefined),
+    label: labelMapper,
+    parentLabel: labelMapper,
 })

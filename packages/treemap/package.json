@@ -27,8 +27,7 @@
     "@nivo/tooltip": "0.58.0",
     "d3-hierarchy": "^1.1.8",
     "lodash": "^4.17.11",
-    "react-motion": "^0.5.2",
-    "recompose": "^0.30.0"
+    "react-motion": "^0.5.2"
   },
   "peerDependencies": {
     "prop-types": ">= 15.5.10 < 16.0.0",

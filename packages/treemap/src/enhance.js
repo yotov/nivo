@@ -11,12 +11,8 @@ import cloneDeep from 'lodash/cloneDeep'
 import compose from 'recompose/compose'
 import defaultProps from 'recompose/defaultProps'
 import withPropsOnChange from 'recompose/withPropsOnChange'
-import pure from 'recompose/pure'
 import {
     withHierarchy,
-    withDimensions,
-    withTheme,
-    withMotion,
     getAccessorFor,
     getLabelGenerator,
     treeMapTileFromProp,
@@ -32,36 +28,9 @@ const computeNodePath = (node, getIdentity) =>
         .join('.')
 
 const commonEnhancers = [
-    withHierarchy(),
-    withDimensions(),
-    withTheme(),
-    withMotion(),
-    withPropsOnChange(['colors', 'colorBy'], ({ colors, colorBy }) => ({
-        getColor: getOrdinalColorScale(colors, colorBy),
-    })),
-    withPropsOnChange(['identity'], ({ identity }) => ({
-        getIdentity: getAccessorFor(identity),
-    })),
-    withPropsOnChange(['borderColor', 'theme'], ({ borderColor, theme }) => ({
-        getBorderColor: getInheritedColorGenerator(borderColor, theme),
-    })),
     withPropsOnChange(['label', 'labelFormat'], ({ label, labelFormat }) => ({
         getLabel: getLabelGenerator(label, labelFormat),
     })),
-    withPropsOnChange(['labelTextColor', 'theme'], ({ labelTextColor, theme }) => ({
-        getLabelTextColor: getInheritedColorGenerator(labelTextColor, theme),
-    })),
-    withPropsOnChange(
-        ['width', 'height', 'tile', 'innerPadding', 'outerPadding'],
-        ({ width, height, tile, innerPadding, outerPadding }) => ({
-            treemap: d3Treemap()
-                .size([width, height])
-                .tile(treeMapTileFromProp(tile))
-                .round(true)
-                .paddingInner(innerPadding)
-                .paddingOuter(outerPadding),
-        })
-    ),
     withPropsOnChange(
         ['root', 'treemap', 'leavesOnly', 'getIdentity', 'getColor'],
         ({ root: _root, treemap, leavesOnly, getIdentity, getColor }) => {
@@ -123,22 +92,14 @@ export default Component => {
     switch (Component.displayName) {
         case 'TreeMap':
             return compose(
-                ...[
-                    defaultProps(implDefaultProps),
-                    ...commonEnhancers,
-                    ...svgEnhancers,
-                    withMotion(),
-                    pure,
-                ]
+                ...[defaultProps(implDefaultProps), ...commonEnhancers, ...svgEnhancers]
             )(Component)
 
         case 'TreeMapHtml':
-            return compose(
-                ...[defaultProps(implDefaultProps), ...commonEnhancers, withMotion(), pure]
-            )(Component)
+            return compose(...[defaultProps(implDefaultProps), ...commonEnhancers])(Component)
 
         case 'TreeMapCanvas':
-            return compose(...[defaultProps(implDefaultProps), ...commonEnhancers, pure])(Component)
+            return compose(...[defaultProps(implDefaultProps), ...commonEnhancers])(Component)
     }
 
     return Component

@@ -6,7 +6,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-import React, { Component } from 'react'
+import React, { memo, Component } from 'react'
 import { degreesToRadians } from '@nivo/core'
 import { getRelativeCursor, isCursorInRect } from '@nivo/core'
 import { Container } from '@nivo/core'
@@ -159,4 +159,4 @@ TreeMapCanvas.displayName = 'TreeMapCanvas'
 const enhancedTreeMapCanvas = enhance(TreeMapCanvas)
 enhancedTreeMapCanvas.displayName = 'TreeMapCanvas'
 
-export default enhancedTreeMapCanvas
+export default memo(enhancedTreeMapCanvas)

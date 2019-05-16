@@ -10,17 +10,19 @@ import { spring } from 'react-motion'
 import { interpolateColor } from '@nivo/colors'
 
 export const nodeWillEnter = ({ data: node }) => ({
-    x: node.x,
-    y: node.y,
-    width: node.width,
-    height: node.height,
-    ...interpolateColor(node.color),
+    x: node.box.x,
+    y: node.box.y,
+    width: node.box.width,
+    height: node.box.height,
+    ...interpolateColor(node.style.color),
+    labelRotation: 0,
 })
 
 export const nodeWillLeave = springConfig => ({ data: node }) => ({
-    x: spring(node.x + node.width / 2, springConfig),
-    y: spring(node.y + node.height / 2, springConfig),
+    x: spring(node.box.x + node.box.width / 2, springConfig),
+    y: spring(node.box.y + node.box.height / 2, springConfig),
     width: spring(0, springConfig),
     height: spring(0, springConfig),
-    ...interpolateColor(node.color, springConfig),
+    ...interpolateColor(node.style.color, springConfig),
+    labelRotation: spring(0, springConfig),
 })

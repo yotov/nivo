@@ -8,58 +8,125 @@
  */
 import React from 'react'
 import PropTypes from 'prop-types'
-import { themePropType } from '@nivo/core'
+import { useTheme } from '@nivo/core'
 
-const TreeMapNode = ({ style, node, handlers, theme }) => {
-    if (style.width <= 0 || style.height <= 0) return null
+const TreeMapNode = ({
+    node,
+    x,
+    y,
+    width,
+    height,
+    fill,
+    borderWidth,
+    padding,
+    enableParentLabel,
+    parentLabelSize,
+    parentLabelPadding,
+    enableLabel,
+    labelRotation,
+}) => {
+    const theme = useTheme()
+    if (node.box.width <= 0 || node.box.height <= 0) return null
 
-    const rotate = node.label && style.orientLabel && style.height > style.width
+    const shouldDisplayParentLabel =
+        enableParentLabel && node.data.height > 0 && parentLabelSize + padding <= node.box.height
+    const shouldDisplayLabel = enableLabel && node.data.height === 0
 
     return (
-        <g transform={`translate(${style.x},${style.y})`}>
+        <>
+            <mask id={`${node.id}.mask`}>
+                <rect width={width} height={height} fill="white" />
+            </mask>
+            <g transform={`translate(${x},${y})`} mask={`url(#${node.id}.mask)`}>
+                <rect
+                    width={800}
+                    height={800}
+                    fill={fill}
+                    strokeWidth={borderWidth}
+                    stroke={node.style.borderColor}
+                />
+                {shouldDisplayParentLabel && (
+                    <>
+                        <rect
+                            x={0}
+                            y={0}
+                            width={width}
+                            height={parentLabelSize}
+                            fill={node.style.parentLabelBackground}
+                            style={{ pointerEvents: 'none' }}
+                        />
+                        <text
+                            x={parentLabelPadding}
+                            y={parentLabelSize / 2}
+                            textAnchor="start"
+                            dominantBaseline="central"
+                            style={{
+                                ...theme.labels.text,
+                                fill: node.style.parentLabelTextColor,
+                                pointerEvents: 'none',
+                            }}
+                        >
+                            {node.data.label}
+                        </text>
+                    </>
+                )}
+                {shouldDisplayLabel && (
+                    <text
+                        textAnchor="middle"
+                        dominantBaseline="central"
+                        style={{
+                            ...theme.labels.text,
+                            fill: node.style.labelTextColor,
+                            pointerEvents: 'none',
+                        }}
+                        transform={`translate(${width / 2},${height / 2}) rotate(${labelRotation})`}
+                    >
+                        {node.data.label}
+                    </text>
+                )}
+            </g>
             <rect
-                width={style.width}
-                height={style.height}
-                fill={style.fill ? style.fill : style.color}
-                strokeWidth={style.borderWidth}
-                stroke={style.borderColor}
-                {...handlers}
+                x={x}
+                y={y}
+                width={width}
+                height={height}
+                style={{ pointerEvents: 'none' }}
+                fill="none"
+                strokeWidth={borderWidth}
+                stroke={node.style.borderColor}
             />
-            {node.label && (
-                <text
-                    textAnchor="middle"
-                    dominantBaseline="central"
-                    style={{
-                        ...theme.labels.text,
-                        fill: style.labelTextColor,
-                        pointerEvents: 'none',
-                    }}
-                    transform={`translate(${style.width / 2},${style.height / 2}) rotate(${
-                        rotate ? -90 : 0
-                    })`}
-                >
-                    {node.label}
-                </text>
-            )}
-        </g>
+        </>
     )
 }
 
 TreeMapNode.propTypes = {
-    node: PropTypes.object.isRequired,
-    style: PropTypes.shape({
-        x: PropTypes.number.isRequired,
-        y: PropTypes.number.isRequired,
-        width: PropTypes.number.isRequired,
-        height: PropTypes.number.isRequired,
-        color: PropTypes.string.isRequired,
-        borderWidth: PropTypes.number.isRequired,
-        borderColor: PropTypes.string.isRequired,
-        labelTextColor: PropTypes.string.isRequired,
-        orientLabel: PropTypes.bool.isRequired,
+    node: PropTypes.shape({
+        id: PropTypes.string.isRequired,
+        data: PropTypes.shape({}).isRequired,
+        box: PropTypes.shape({
+            x: PropTypes.number.isRequired,
+            y: PropTypes.number.isRequired,
+            width: PropTypes.number.isRequired,
+            height: PropTypes.number.isRequired,
+        }).isRequired,
+        style: PropTypes.shape({
+            color: PropTypes.string.isRequired,
+            borderColor: PropTypes.string.isRequired,
+            labelTextColor: PropTypes.string.isRequired,
+            parentLabelBackground: PropTypes.string.isRequired,
+        }).isRequired,
     }).isRequired,
-    handlers: PropTypes.object.isRequired,
-    theme: themePropType.isRequired,
+    x: PropTypes.number.isRequired,
+    y: PropTypes.number.isRequired,
+    width: PropTypes.number.isRequired,
+    height: PropTypes.number.isRequired,
+    padding: PropTypes.number.isRequired,
+    enableParentLabel: PropTypes.bool.isRequired,
+    parentLabelSize: PropTypes.number.isRequired,
+    parentLabelPadding: PropTypes.number.isRequired,
+    enableLabel: PropTypes.bool.isRequired,
+    labelSkipSize: PropTypes.number.isRequired,
+    labelRotation: PropTypes.number.isRequired,
 }
 
 export default TreeMapNode

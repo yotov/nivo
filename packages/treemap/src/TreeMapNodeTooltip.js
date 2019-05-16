@@ -6,30 +6,32 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-import React from 'react'
+import React, { memo } from 'react'
 import PropTypes from 'prop-types'
-import pure from 'recompose/pure'
 import { BasicTooltip } from '@nivo/tooltip'
 
-const TreeMapNodeTooltip = ({ node, theme, tooltip }) => (
+const TreeMapNodeTooltip = ({ node, tooltip }) => (
     <BasicTooltip
-        id={node.id}
-        value={node.value}
+        id={node.data.name}
+        value={node.data.formattedValue}
         enableChip={true}
-        color={node.color}
-        theme={theme}
+        color={node.style.color}
         renderContent={typeof tooltip === 'function' ? tooltip.bind(null, { node, ...node }) : null}
     />
 )
 
 TreeMapNodeTooltip.propTypes = {
     node: PropTypes.shape({
-        id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-        value: PropTypes.number.isRequired,
-        color: PropTypes.string.isRequired,
+        id: PropTypes.string.isRequired,
+        data: PropTypes.shape({
+            name: PropTypes.string.isRequired,
+            formattedValue: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+        }).isRequired,
+        style: PropTypes.shape({
+            color: PropTypes.string.isRequired,
+        }).isRequired,
     }).isRequired,
-    theme: PropTypes.object.isRequired,
     tooltip: PropTypes.func,
 }
 
-export default pure(TreeMapNodeTooltip)
+export default memo(TreeMapNodeTooltip)

@@ -6,50 +6,97 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-import React from 'react'
+import React, { memo } from 'react'
 import { TransitionMotion, spring } from 'react-motion'
-import { Container, SvgWrapper } from '@nivo/core'
+import { withContainer, SvgWrapper, useDimensions, useTheme, useMotionConfig } from '@nivo/core'
 import { interpolateColor, getInterpolatedColor } from '@nivo/colors'
-import { TreeMapPropTypes } from './props'
-import enhance from './enhance'
+import { useTooltip } from '@nivo/tooltip'
+import { TreeMapPropTypes, TreeMapDefaultProps } from './props'
 import { nodeWillEnter, nodeWillLeave } from './motion'
 import { getNodeHandlers } from './interactivity'
+import { useTreeMap } from './hooks'
+import AnimatedSvgNodes from './AnimatedSvgNodes'
 
 const TreeMap = ({
-    nodes,
+    width,
+    height,
+    margin: partialMargin,
+
+    root,
+    identity,
+    name,
+    value,
+    valueFormat,
+
+    tile,
+    padding,
+    leavesOnly,
+
     nodeComponent,
-
-    margin,
-    outerWidth,
-    outerHeight,
-
-    theme,
+    colors,
+    colorBy,
     borderWidth,
-    getBorderColor,
+    borderColor,
     defs,
 
-    getLabelTextColor,
+    enableLabel,
+    label,
+    labelSkipSize,
+    labelTextColor,
     orientLabel,
 
-    animate,
-    motionStiffness,
-    motionDamping,
+    enableParentLabel,
+    parentLabel,
+    parentLabelSize,
+    parentLabelPadding,
+    parentLabelBackground,
+    parentLabelTextColor,
 
     isInteractive,
+    onMouseEnter,
+    onMouseMove,
+    onMouseLeave,
     onClick,
     tooltipFormat,
     tooltip,
 }) => {
-    const springConfig = {
-        stiffness: motionStiffness,
-        damping: motionDamping,
-    }
+    const theme = useTheme()
+    const { margin, innerWidth, innerHeight, outerWidth, outerHeight } = useDimensions(
+        width,
+        height,
+        partialMargin
+    )
+    const { animate } = useMotionConfig()
+    const { showTooltipFromEvent, hideTooltip } = useTooltip()
 
-    const getHandlers = (node, showTooltip, hideTooltip) =>
+    const { nodes } = useTreeMap({
+        root,
+        identity,
+        name,
+        value,
+        valueFormat,
+        width: innerWidth,
+        height: innerHeight,
+        tile,
+        padding,
+        enableParentLabel,
+        parentLabel,
+        label,
+        parentLabelSize,
+        leavesOnly,
+        colors,
+        colorBy,
+        borderColor,
+        labelTextColor,
+        parentLabelBackground,
+        parentLabelTextColor,
+    })
+
+    const getHandlers = node =>
         getNodeHandlers(node, {
             isInteractive,
             onClick,
-            showTooltip,
+            showTooltip: showTooltipFromEvent,
             hideTooltip,
             theme,
             tooltipFormat,
@@ -57,95 +104,52 @@ const TreeMap = ({
         })
 
     return (
-        <Container
-            isInteractive={isInteractive}
-            theme={theme}
-            animate={animate}
-            motionDamping={motionDamping}
-            motionStiffness={motionStiffness}
-        >
-            {({ showTooltip, hideTooltip }) => (
-                <SvgWrapper
-                    width={outerWidth}
-                    height={outerHeight}
-                    margin={margin}
-                    defs={defs}
-                    theme={theme}
-                >
-                    {!animate && (
-                        <g>
-                            {nodes.map(node =>
-                                React.createElement(nodeComponent, {
-                                    key: node.path,
-                                    node,
-                                    style: {
-                                        fill: node.fill,
-                                        x: node.x0,
-                                        y: node.y0,
-                                        width: node.width,
-                                        height: node.height,
-                                        color: node.color,
-                                        borderWidth,
-                                        borderColor: getBorderColor(node),
-                                        labelTextColor: getLabelTextColor(node),
-                                        orientLabel,
-                                    },
-                                    handlers: getHandlers(node, showTooltip, hideTooltip),
-                                    theme,
-                                })
-                            )}
-                        </g>
+        <SvgWrapper width={outerWidth} height={outerHeight} margin={margin} defs={defs}>
+            {!animate && (
+                <>
+                    {nodes.map(node =>
+                        React.createElement(nodeComponent, {
+                            key: node.path,
+                            node,
+                            style: {
+                                fill: node.fill,
+                                x: node.x0,
+                                y: node.y0,
+                                width: node.width,
+                                height: node.height,
+                                color: node.color,
+                                borderWidth,
+                                borderColor: node.style.borderColor,
+                                labelTextColor: node.style.labelTextColor,
+                                orientLabel,
+                                enableParentLabel,
+                                parentLabelSize,
+                                parentLabelPadding,
+                            },
+                            handlers: getHandlers(node),
+                        })
                     )}
-                    {animate && (
-                        <TransitionMotion
-                            willEnter={nodeWillEnter}
-                            willLeave={nodeWillLeave(springConfig)}
-                            styles={nodes.map(node => ({
-                                key: node.path,
-                                data: node,
-                                style: {
-                                    x: spring(node.x, springConfig),
-                                    y: spring(node.y, springConfig),
-                                    width: spring(node.width, springConfig),
-                                    height: spring(node.height, springConfig),
-                                    ...interpolateColor(node.color, springConfig),
-                                },
-                            }))}
-                        >
-                            {interpolatedStyles => (
-                                <g>
-                                    {interpolatedStyles.map(({ style, data: node }) => {
-                                        style.color = getInterpolatedColor(style)
-
-                                        return React.createElement(nodeComponent, {
-                                            key: node.path,
-                                            node,
-                                            style: {
-                                                ...style,
-                                                fill: node.fill,
-                                                borderWidth,
-                                                borderColor: getBorderColor(style),
-                                                labelTextColor: getLabelTextColor(style),
-                                                orientLabel,
-                                            },
-                                            handlers: getHandlers(node, showTooltip, hideTooltip),
-                                            theme,
-                                        })
-                                    })}
-                                </g>
-                            )}
-                        </TransitionMotion>
-                    )}
-                </SvgWrapper>
+                </>
             )}
-        </Container>
+            {animate && (
+                <AnimatedSvgNodes
+                    nodes={nodes}
+                    nodeComponent={nodeComponent}
+                    padding={padding}
+                    borderWidth={borderWidth}
+                    enableLabel={enableLabel}
+                    labelSkipSize={labelSkipSize}
+                    orientLabel={orientLabel}
+                    enableParentLabel={enableParentLabel}
+                    parentLabelSize={parentLabelSize}
+                    parentLabelPadding={parentLabelPadding}
+                />
+            )}
+        </SvgWrapper>
     )
 }
 
 TreeMap.propTypes = TreeMapPropTypes
-TreeMap.displayName = 'TreeMap'
+TreeMap.defaultProps = TreeMapDefaultProps
 
-const enhancedTreeMap = enhance(TreeMap)
-enhancedTreeMap.displayName = 'TreeMap'
-
-export default enhancedTreeMap
+export default memo(withContainer(TreeMap))

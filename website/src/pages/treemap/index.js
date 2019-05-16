@@ -17,11 +17,12 @@ import { generateLightDataSet } from '../../data/components/treemap/generator'
 
 const initialProperties = {
     identity: 'name',
+    name: 'name',
     value: 'loc',
-    tile: 'squarify',
-    leavesOnly: false,
-    innerPadding: 3,
-    outerPadding: 3,
+    valueFormat: '.02s',
+    tile: TreeMapDefaultProps.tile,
+    leavesOnly: TreeMapDefaultProps.leavesOnly,
+    padding: 3,
 
     margin: {
         top: 10,
@@ -30,29 +31,31 @@ const initialProperties = {
         left: 10,
     },
 
-    enableLabel: true,
-    label: 'loc',
-    labelFormat: '.0s',
+    enableLabel: TreeMapDefaultProps.enableLabel,
+    label: 'formattedValue',
     labelSkipSize: 12,
-    labelTextColor: {
-        from: 'color',
-        modifiers: [['darker', 1.2]],
-    },
-    orientLabel: true,
+    labelTextColor: TreeMapDefaultProps.labelTextColor,
+    orientLabel: TreeMapDefaultProps.orientLabel,
 
-    colors: { scheme: 'nivo' },
-    colorBy: 'depth',
-    borderWidth: 0,
-    borderColor: {
-        from: 'color',
-        modifiers: [['darker', 0.3]],
-    },
+    enableParentLabel: TreeMapDefaultProps.enableParentLabel,
+    parentLabel: TreeMapDefaultProps.parentLabel,
+    parentLabelSize: TreeMapDefaultProps.parentLabelSize,
+    parentLabelPadding: TreeMapDefaultProps.parentLabelPadding,
+    parentLabelBackground: TreeMapDefaultProps.parentLabelBackground,
+    parentLabelTextColor: TreeMapDefaultProps.parentLabelTextColor,
 
-    animate: true,
-    motionStiffness: 90,
-    motionDamping: 11,
+    colors: TreeMapDefaultProps.colors,
+    colorBy: TreeMapDefaultProps.colorBy,
+    borderWidth: TreeMapDefaultProps.borderWidth,
+    activeBorderWidth: TreeMapDefaultProps.activeBorderWidth,
+    inactiveBorderWidth: TreeMapDefaultProps.inactiveBorderWidth,
+    borderColor: TreeMapDefaultProps.borderColor,
 
-    isInteractive: true,
+    isInteractive: TreeMapDefaultProps.isInteractive,
+
+    animate: TreeMapDefaultProps.animate,
+    motionStiffness: TreeMapDefaultProps.motionStiffness,
+    motionDamping: TreeMapDefaultProps.motionDamping,
 }
 
 const TreeMap = () => {
@@ -79,9 +82,9 @@ const TreeMap = () => {
                         onClick={node => {
                             logAction({
                                 type: 'click',
-                                label: `[node] ${node.id}: ${node.value}`,
-                                color: node.color,
-                                data: omit(node, ['parent', 'children']),
+                                label: `[node] ${node.data.name}: ${node.data.formattedValue}`,
+                                color: node.style.color,
+                                data: node,
                             })
                         }}
                     />
