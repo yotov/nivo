@@ -17,7 +17,7 @@ import { LinePropTypes, LineDefaultProps } from './props'
 import Areas from './Areas'
 import Lines from './Lines'
 import Slices from './Slices'
-import Points from './Points'
+import Points from './LinePoints'
 import Mesh from './Mesh'
 
 const Line = props => {
