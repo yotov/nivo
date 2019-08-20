@@ -6,12 +6,10 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-import React from 'react'
+import React, { memo } from 'react'
 import PropTypes from 'prop-types'
 import { TransitionMotion, spring } from 'react-motion'
-import pure from 'recompose/pure'
-import { motionPropTypes } from '@nivo/core'
-import { positionFromAngle, radiansToDegrees } from '@nivo/core'
+import { useTheme, useMotionConfig, positionFromAngle, radiansToDegrees } from '@nivo/core'
 
 const textAnchorFromAngle = _angle => {
     const angle = radiansToDegrees(_angle) + 90
@@ -24,7 +22,11 @@ const renderLabel = (label, theme, labelComponent) => {
     let labelNode
     if (labelComponent === undefined) {
         labelNode = (
-            <text style={theme.axis.ticks.text} dy="0.5em" textAnchor={label.anchor}>
+            <text
+                style={theme.axis.ticks.text}
+                dominantBaseline="central"
+                textAnchor={label.anchor}
+            >
                 {label.id}
             </text>
         )
@@ -39,21 +41,9 @@ const renderLabel = (label, theme, labelComponent) => {
     )
 }
 
-const RadarGridLabels = ({
-    radius,
-    angles,
-    indices,
-    label: labelComponent,
-    labelOffset,
-    theme,
-    animate,
-    motionStiffness,
-    motionDamping,
-}) => {
-    const springConfig = {
-        motionDamping,
-        motionStiffness,
-    }
+const RadarGridLabels = memo(({ radius, angles, indices, label: labelComponent, labelOffset }) => {
+    const theme = useTheme()
+    const { animate, springConfig } = useMotionConfig()
 
     const labels = indices.map((index, i) => {
         const position = positionFromAngle(angles[i], radius + labelOffset)
@@ -89,8 +79,9 @@ const RadarGridLabels = ({
             )}
         </TransitionMotion>
     )
-}
+})
 
+RadarGridLabels.displayName = 'RadarGridLabels'
 RadarGridLabels.propTypes = {
     radius: PropTypes.number.isRequired,
     angles: PropTypes.arrayOf(PropTypes.number).isRequired,
@@ -98,8 +89,6 @@ RadarGridLabels.propTypes = {
         .isRequired,
     label: PropTypes.func,
     labelOffset: PropTypes.number.isRequired,
-    theme: PropTypes.object.isRequired,
-    ...motionPropTypes,
 }
 
-export default pure(RadarGridLabels)
+export default RadarGridLabels

@@ -7,7 +7,7 @@
  * file that was distributed with this source code.
  */
 import React, { Component, Fragment } from 'react'
-import partial from 'lodash/partial'
+import partial from 'lodash.partial'
 import setDisplayName from 'recompose/setDisplayName'
 import { TransitionMotion, spring } from 'react-motion'
 import { Container } from '@nivo/core'
@@ -82,7 +82,13 @@ class WaffleHtml extends Component {
         })
 
         return (
-            <Container isInteractive={isInteractive} theme={theme}>
+            <Container
+                isInteractive={isInteractive}
+                theme={theme}
+                animate={animate}
+                motionDamping={motionDamping}
+                motionStiffness={motionStiffness}
+            >
                 {({ showTooltip, hideTooltip }) => {
                     const onHover = partial(this.handleCellHover, showTooltip)
                     const onLeave = partial(this.handleCellLeave, hideTooltip)

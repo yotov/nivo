@@ -6,9 +6,12 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-import React, { Component } from 'react'
+import React, { useRef, useState, useCallback } from 'react'
 import PropTypes from 'prop-types'
+import { tooltipContext } from '@nivo/tooltip'
 import noop from '../lib/noop'
+import { themeContext } from '../theming'
+import { MotionConfigProvider } from '../motion'
 
 const containerStyle = {
     position: 'relative',
@@ -20,70 +23,59 @@ const tooltipStyle = {
     zIndex: 10,
 }
 
-const noopHandlers = {
-    showTooltip: noop,
-    hideTooltip: noop,
-}
-
-export default class Container extends Component {
-    static propTypes = {
-        children: PropTypes.func.isRequired,
-        isInteractive: PropTypes.bool.isRequired,
-        theme: PropTypes.object.isRequired,
-    }
-
-    static defaultProps = {
-        isInteractive: true,
-    }
-
-    state = {
+const Container = ({
+    children,
+    theme,
+    isInteractive = true,
+    animate,
+    motionStiffness,
+    motionDamping,
+}) => {
+    const containerEl = useRef(null)
+    const [state, setState] = useState({
         isTooltipVisible: false,
         tooltipContent: null,
         position: {},
-    }
+    })
+    const showTooltip = useCallback(
+        (content, event) => {
+            if (!containerEl) return
 
-    showTooltip = (content, event) => {
-        const { clientX, clientY } = event
-        const bounds = this.container.getBoundingClientRect()
+            const bounds = containerEl.current.getBoundingClientRect()
 
-        const x = clientX - bounds.left
-        const y = clientY - bounds.top
+            const { clientX, clientY } = event
 
-        const position = {}
+            const x = clientX - bounds.left
+            const y = clientY - bounds.top
 
-        if (x < bounds.width / 2) position.left = x + 20
-        else position.right = bounds.width - x + 20
+            const position = {}
 
-        if (y < bounds.height / 2) position.top = y - 12
-        else position.bottom = bounds.height - y - 12
+            if (x < bounds.width / 2) position.left = x + 20
+            else position.right = bounds.width - x + 20
 
-        this.setState({
-            isTooltipVisible: true,
-            tooltipContent: content,
-            position,
-        })
-    }
+            if (y < bounds.height / 2) position.top = y - 12
+            else position.bottom = bounds.height - y - 12
 
-    hideTooltip = () => {
-        this.setState({ isTooltipVisible: false, tooltipContent: null })
-    }
+            setState({
+                isTooltipVisible: true,
+                tooltipContent: content,
+                position,
+            })
+        },
+        [containerEl]
+    )
+    const hideTooltip = useCallback(() => {
+        setState({ isTooltipVisible: false, tooltipContent: null })
+    })
+    const { isTooltipVisible, tooltipContent, position } = state
 
-    render() {
-        const { children, isInteractive, theme } = this.props
-        const { isTooltipVisible, tooltipContent, position } = this.state
-
-        if (!isInteractive) return children(noopHandlers)
-
-        return (
-            <div
-                style={containerStyle}
-                ref={container => {
-                    this.container = container
-                }}
-            >
+    let content
+    if (isInteractive === true) {
+        content = (
+            <div style={containerStyle} ref={containerEl}>
                 {children({
-                    showTooltip: this.showTooltip,
-                    hideTooltip: this.hideTooltip,
+                    showTooltip: isInteractive ? showTooltip : noop,
+                    hideTooltip: isInteractive ? hideTooltip : noop,
                 })}
                 {isTooltipVisible && (
                     <div
@@ -98,5 +90,35 @@ export default class Container extends Component {
                 )}
             </div>
         )
+    } else {
+        content = children({
+            showTooltip: isInteractive ? showTooltip : noop,
+            hideTooltip: isInteractive ? hideTooltip : noop,
+        })
     }
+
+    return (
+        <themeContext.Provider value={theme}>
+            <MotionConfigProvider
+                animate={animate}
+                stiffness={motionStiffness}
+                damping={motionDamping}
+            >
+                <tooltipContext.Provider value={[showTooltip, hideTooltip]}>
+                    {content}
+                </tooltipContext.Provider>
+            </MotionConfigProvider>
+        </themeContext.Provider>
+    )
 }
+
+Container.propTypes = {
+    children: PropTypes.func.isRequired,
+    isInteractive: PropTypes.bool,
+    theme: PropTypes.object.isRequired,
+    animate: PropTypes.bool.isRequired,
+    motionStiffness: PropTypes.number,
+    motionDamping: PropTypes.number,
+}
+
+export default Container

@@ -7,74 +7,51 @@
  * file that was distributed with this source code.
  */
 import React from 'react'
-import { BoxLegendSvg } from '@nivo/legends'
-import setDisplayName from 'recompose/setDisplayName'
-import computeCalendar from './computeCalendar'
-import { CalendarPropTypes } from './props'
-import { DIRECTION_HORIZONTAL } from './constants'
-import CalendarDay from './CalendarDay'
-import CalendarMonthPath from './CalendarMonthPath'
 import { Container, SvgWrapper } from '@nivo/core'
+import { BoxLegendSvg } from '@nivo/legends'
+import { setDisplayName } from 'recompose'
+import { CalendarPropTypes } from './props'
 import enhance from './enhance'
+import CalendarYearLegends from './CalendarYearLegends'
+import CalendarMonthPath from './CalendarMonthPath'
+import CalendarMonthLegends from './CalendarMonthLegends'
+import CalendarDay from './CalendarDay'
 
 const Calendar = ({
-    data,
-    from,
-    to,
-
     colorScale,
 
-    // dimensions
     margin,
     width,
     height,
     outerWidth,
     outerHeight,
 
-    direction,
-
-    // years
+    yearLegends,
     yearLegend,
-    yearSpacing,
-    yearLegendOffset,
 
-    // months
+    monthLegends,
     monthLegend,
     monthBorderWidth,
     monthBorderColor,
-    monthLegendOffset,
 
-    // days
     daySpacing,
     dayBorderWidth,
     dayBorderColor,
-    emptyColor,
 
     theme,
 
-    // interactivity
     isInteractive,
     tooltipFormat,
     tooltip,
     onClick,
 
     legends,
-}) => {
-    const { years, months, days } = computeCalendar({
-        width,
-        height,
-        from,
-        to,
-        data,
-        direction,
-        colorScale,
-        emptyColor,
-        yearSpacing,
-        daySpacing,
-    })
 
+    months,
+    days,
+}) => {
     return (
-        <Container isInteractive={isInteractive} theme={theme}>
+        <Container isInteractive={isInteractive} theme={theme} animate={false}>
             {({ showTooltip, hideTooltip }) => (
                 <SvgWrapper width={outerWidth} height={outerHeight} margin={margin} theme={theme}>
                     {days.map(d => (
@@ -84,6 +61,7 @@ const Calendar = ({
                             x={d.x}
                             y={d.y}
                             size={d.size}
+                            spacing={daySpacing}
                             color={d.color}
                             borderWidth={dayBorderWidth}
                             borderColor={dayBorderColor}
@@ -103,51 +81,12 @@ const Calendar = ({
                             borderColor={monthBorderColor}
                         />
                     ))}
-                    {months.map(month => {
-                        let transform
-                        if (direction === DIRECTION_HORIZONTAL) {
-                            transform = `translate(${month.bbox.x + month.bbox.width / 2},${month
-                                .bbox.y - monthLegendOffset})`
-                        } else {
-                            transform = `translate(${month.bbox.x - monthLegendOffset},${month.bbox
-                                .y +
-                                month.bbox.height / 2}) rotate(-90)`
-                        }
-
-                        return (
-                            <text
-                                key={`${month.date.toString()}.legend`}
-                                className="nivo_calendar_month_legend"
-                                transform={transform}
-                                textAnchor="middle"
-                                style={theme.labels.text}
-                            >
-                                {monthLegend(month.year, month.month, month.date)}
-                            </text>
-                        )
-                    })}
-                    {years.map(year => {
-                        let transform
-                        if (direction === DIRECTION_HORIZONTAL) {
-                            transform = `translate(${year.bbox.x - yearLegendOffset},${year.bbox.y +
-                                year.bbox.height / 2}) rotate(-90)`
-                        } else {
-                            transform = `translate(${year.bbox.x + year.bbox.width / 2},${year.bbox
-                                .y - yearLegendOffset})`
-                        }
-
-                        return (
-                            <text
-                                key={year.year}
-                                className="nivo_calendar_year_legend"
-                                transform={transform}
-                                textAnchor="middle"
-                                style={theme.labels.text}
-                            >
-                                {yearLegend(year.year)}
-                            </text>
-                        )
-                    })}
+                    <CalendarMonthLegends
+                        months={monthLegends}
+                        legend={monthLegend}
+                        theme={theme}
+                    />
+                    <CalendarYearLegends years={yearLegends} legend={yearLegend} theme={theme} />
                     {legends.map((legend, i) => {
                         const legendData = colorScale.ticks(legend.itemCount).map(value => ({
                             id: value,
@@ -172,6 +111,7 @@ const Calendar = ({
     )
 }
 
+Calendar.displayName = 'Calendar'
 Calendar.propTypes = CalendarPropTypes
 
 export default setDisplayName('Calendar')(enhance(Calendar))

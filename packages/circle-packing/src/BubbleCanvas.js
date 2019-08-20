@@ -50,24 +50,6 @@ class BubbleCanvas extends Component {
         this.ctx.fillRect(0, 0, outerWidth, outerHeight)
         this.ctx.translate(margin.left, margin.top)
 
-        /*
-        Could be used to compute metaballs,
-        grouping nodes by depth + common parent
-        using marching squares, but it really is a bonus feature…
-
-        const maxDepth = _.maxBy(nodes, 'depth').depth
-        const nodesByDepth = _.range(maxDepth + 1).map(depth =>
-            _.values(
-                _.groupBy(nodes.filter(({ depth: nodeDepth }) => nodeDepth === depth), 'parent.id')
-            )
-        )
-        nodesByDepth.forEach(layer => {
-            layer.forEach(node => {
-                console.log(node)
-            })
-        })
-        */
-
         nodes.forEach(node => {
             this.ctx.save()
 
@@ -89,16 +71,18 @@ class BubbleCanvas extends Component {
         if (enableLabel) {
             this.ctx.textAlign = 'center'
             this.ctx.textBaseline = 'middle'
-            this.ctx.font = `${theme.labels.text.fontSize}px sans-serif`
+            this.ctx.font = `${theme.labels.text.fontSize}px ${theme.labels.text.fontFamily}`
 
             // draw labels on top
-            nodes.filter(({ r }) => r > labelSkipRadius).forEach(node => {
-                const label = getLabel(node)
-                const labelTextColor = getLabelTextColor(node)
+            nodes
+                .filter(({ r }) => r > labelSkipRadius)
+                .forEach(node => {
+                    const label = getLabel(node)
+                    const labelTextColor = getLabelTextColor(node)
 
-                this.ctx.fillStyle = labelTextColor
-                this.ctx.fillText(label, node.x, node.y)
-            })
+                    this.ctx.fillStyle = labelTextColor
+                    this.ctx.fillText(label, node.x, node.y)
+                })
         }
     }
 
@@ -106,7 +90,7 @@ class BubbleCanvas extends Component {
         const { outerWidth, outerHeight, pixelRatio, isInteractive, theme } = this.props
 
         return (
-            <Container isInteractive={isInteractive} theme={theme}>
+            <Container isInteractive={isInteractive} theme={theme} animate={false}>
                 {() => (
                     <canvas
                         ref={surface => {

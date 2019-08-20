@@ -44,12 +44,6 @@ export class ParallelCoordinates extends Component {
             isInteractive,
         } = this.props
 
-        const motionProps = {
-            animate,
-            motionStiffness,
-            motionDamping,
-        }
-
         return (
             <ParallelCoordinatesLayout
                 width={width}
@@ -72,17 +66,21 @@ export class ParallelCoordinates extends Component {
                             tickSize={variable.tickSize}
                             tickPadding={variable.tickPadding}
                             tickRotation={variable.tickRotation}
-                            tickFormat={variable.tickFormat}
+                            format={variable.tickFormat}
                             legend={variable.legend}
                             legendPosition={variable.legendPosition}
                             legendOffset={variable.legendOffset}
-                            theme={theme}
-                            {...motionProps}
                         />
                     ))
 
                     return (
-                        <Container isInteractive={isInteractive} theme={theme}>
+                        <Container
+                            isInteractive={isInteractive}
+                            theme={theme}
+                            animate={animate}
+                            motionDamping={motionDamping}
+                            motionStiffness={motionStiffness}
+                        >
                             {({ showTooltip, hideTooltip }) => (
                                 <SvgWrapper
                                     width={outerWidth}
@@ -104,7 +102,9 @@ export class ParallelCoordinates extends Component {
                                             theme={theme}
                                             showTooltip={showTooltip}
                                             hideTooltip={hideTooltip}
-                                            {...motionProps}
+                                            animate={animate}
+                                            motionDamping={motionDamping}
+                                            motionStiffness={motionStiffness}
                                         />
                                     ))}
                                     {axesPlan === 'foreground' && axes}

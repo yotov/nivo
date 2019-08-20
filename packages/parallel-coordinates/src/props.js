@@ -8,6 +8,7 @@
  */
 import PropTypes from 'prop-types'
 import { themePropType, lineCurvePropType } from '@nivo/core'
+import { ordinalColorsPropType } from '@nivo/colors'
 
 const commonVariablePropTypes = {
     key: PropTypes.string.isRequired,
@@ -15,7 +16,7 @@ const commonVariablePropTypes = {
     tickSize: PropTypes.number,
     tickPadding: PropTypes.number,
     tickRotation: PropTypes.number,
-    tickFormat: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
+    format: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
     legend: PropTypes.node,
     legendPosition: PropTypes.oneOf(['start', 'middle', 'end']),
     legendOffset: PropTypes.number,
@@ -56,14 +57,14 @@ export const commonPropTypes = {
     lineOpacity: PropTypes.number.isRequired,
     axesPlan: PropTypes.oneOf(['foreground', 'background']).isRequired,
     axesTicksPosition: PropTypes.oneOf(['before', 'after']).isRequired,
+    colors: ordinalColorsPropType.isRequired,
     theme: themePropType.isRequired,
 }
 
 export const commonDefaultProps = {
     layout: 'horizontal',
     curve: 'linear',
-    colors: 'yellow_orange_red',
-    colorBy: 'index',
+    colors: { scheme: 'yellow_orange_red' },
     strokeWidth: 2,
     lineOpacity: 0.35,
     axesPlan: 'foreground',

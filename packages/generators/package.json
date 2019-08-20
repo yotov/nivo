@@ -1,6 +1,6 @@
 {
   "name": "@nivo/generators",
-  "version": "0.50.0",
+  "version": "0.59.0",
   "licenses": [
     {
       "type": "MIT",
@@ -12,21 +12,22 @@
     "name": "Raphaël Benitte",
     "url": "https://github.com/plouc"
   },
-  "main": "./index.js",
+  "main": "./dist/nivo-generators.cjs.js",
+  "module": "./dist/nivo-generators.esm.js",
   "files": [
     "README.md",
-    "index.js",
-    "cjs/",
-    "umd/"
+    "LICENSE.md",
+    "dist/"
   ],
   "engines": {
     "node": ">=6.0.0",
     "npm": ">=3.0.0"
   },
   "dependencies": {
+    "d3-random": "^1.1.2",
     "d3-time": "^1.0.10",
     "d3-time-format": "^2.1.3",
-    "lodash": "^4.17.4"
+    "lodash": "^4.17.11"
   },
   "publishConfig": {
     "access": "public"

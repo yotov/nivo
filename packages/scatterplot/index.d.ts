@@ -1,69 +1,156 @@
+/*
+ * This file is part of the nivo project.
+ *
+ * Copyright 2016-present, Raphaël Benitte.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 import * as React from 'react'
-import { Dimensions, Box, Theme, MotionProps, CartesianMarkerProps } from '@nivo/core'
+import {
+    Dimensions,
+    Box,
+    Theme,
+    MotionProps,
+    CartesianMarkerProps,
+    CssMixBlendMode,
+} from '@nivo/core'
+import { OrdinalColorsInstruction } from '@nivo/colors'
 import { LegendProps } from '@nivo/legends'
 import { AxisProps } from '@nivo/axes'
 import { Scale } from '@nivo/scales'
 
-declare module '@nivo/scatterplot' {
-    export type TooltipFormatter = (value: { x: number | string; y: number | string }) => string
+type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
 
-    export interface ScatterPlotDatum {
-        serie: string
-        id: string | number
-        x: string | number
-        y: string | number
-        color: string
+declare module '@nivo/scatterplot' {
+    export type Value = number | string | Date
+    export type ValueFormatter = (value: Value) => string | number
+
+    export interface Datum {
+        x: Value
+        y: Value
     }
 
-    export type ScatterPlotMouseHandler = (
-        data: ScatterPlotDatum,
-        event: React.MouseEvent<any>
+    export type DerivedDatumProp<T> = (node: Datum) => T
+
+    export interface Serie {
+        id: string
+        data: Datum[]
+    }
+
+    export interface Node {
+        index: number
+        id: string
+        serieId: string
+        x: number
+        y: number
+        size: number
+        style: {
+            color: string
+        }
+        data: {
+            x: Value
+            formattedX: string | number
+            y: Value
+            formattedY: string | number
+        }
+    }
+
+    export type DerivedNodeProp<T> = (node: Node) => T
+
+    export interface NodeProps {
+        node: Node
+
+        x: number
+        y: number
+        size: number
+        color: string
+        blendMode: CssMixBlendMode
+
+        onMouseEnter?: VoidFunction
+        onMouseMove?: VoidFunction
+        onMouseLeave?: VoidFunction
+        onClick?: VoidFunction
+    }
+
+    export type NodeComponent = (props: NodeProps) => React.ReactNode
+    export type NodeCanvasComponent = (ctx: CanvasRenderingContext2D, props: NodeProps) => void
+
+    export type MouseHandler = (node: Node, event: React.MouseEvent<any>) => void
+
+    export interface DynamicSizeSpec {
+        key: string
+        values: [number, number]
+        sizes: [number, number]
+    }
+
+    export type CustomTooltip = ({ node: Node }) => React.ReactNode
+
+    type Scale = (value: Value) => number
+
+    export interface ScatterPlotComputedProps {
+        xScale: Scale
+        yScale: Scale
+        nodes: Node[]
+        innerWidth: number
+        innerHeight: number
+        outerWidth: number
+        outerHeight: number
+    }
+
+    export interface CustomSvgLayerProps
+        extends Omit<ScatterPlotSvgProps, 'xScale' | 'yScale'>,
+            ScatterPlotComputedProps {}
+    export interface CustomCanvasLayerProps
+        extends Omit<ScatterPlotCanvasProps, 'xScale' | 'yScale'>,
+            ScatterPlotComputedProps {}
+
+    export type CustomSvgLayer = (props: CustomSvgLayerProps) => React.ReactNode
+    export type CustomCanvasLayer = (
+        ctx: CanvasRenderingContext2D,
+        props: CustomCanvasLayerProps
     ) => void
 
-    export type ScatterPlotSizeGetter = (data: ScatterPlotDatum) => number
+    export type CustomLayerId = 'grid' | 'axes' | 'nodes' | 'markers' | 'mesh' | 'legends'
 
     export interface ScatterPlotProps {
-        data: Array<{
-            id: string
-            data: Array<{
-                x: number
-                y: number
-            }>
-        }>
+        data: Serie[]
 
         xScale?: Scale
+        xFormat?: string | ValueFormatter
         yScale?: Scale
-
-        theme?: Theme
+        yFormat?: string | ValueFormatter
 
         margin?: Box
 
-        axisTop?: AxisProps
-        axisRight?: AxisProps
-        axisBottom?: AxisProps
-        axisLeft?: AxisProps
+        theme?: Theme
+        colors?: OrdinalColorsInstruction
+        blendMode?: CssMixBlendMode
 
         enableGridX?: boolean
         enableGridY?: boolean
+        axisTop?: AxisProps | null
+        axisRight?: AxisProps | null
+        axisBottom?: AxisProps | null
+        axisLeft?: AxisProps | null
 
-        symbolSize?: number | ScatterPlotSizeGetter
-        symbolShape?: 'circle' | 'square'
+        nodeSize?: number | DerivedDatumProp<number> | DynamicSizeSpec
 
         isInteractive?: boolean
         useMesh?: boolean
         debugMesh?: boolean
-        onMouseEnter?: ScatterPlotMouseHandler
-        onMouseMove?: ScatterPlotMouseHandler
-        onMouseLeave?: ScatterPlotMouseHandler
-        onClick?: ScatterPlotMouseHandler
-
-        tooltipFormat?: TooltipFormatter
-        tooltip?: (data: ScatterPlotDatum) => React.ReactNode
+        onMouseEnter?: MouseHandler
+        onMouseMove?: MouseHandler
+        onMouseLeave?: MouseHandler
+        onClick?: MouseHandler
+        tooltip?: CustomTooltip
 
         legends?: LegendProps[]
     }
 
     export interface ScatterPlotSvgProps extends ScatterPlotProps, MotionProps {
+        layers?: Array<CustomLayerId | CustomSvgLayer>
+        renderNode?: NodeComponent
         markers?: CartesianMarkerProps[]
     }
 
@@ -72,6 +159,8 @@ declare module '@nivo/scatterplot' {
 
     export interface ScatterPlotCanvasProps extends ScatterPlotProps {
         pixelRatio?: number
+        layers?: Array<CustomLayerId | CustomCanvasLayer>
+        renderNode?: NodeCanvasComponent
     }
 
     export class ScatterPlotCanvas extends React.Component<ScatterPlotCanvasProps & Dimensions> {}

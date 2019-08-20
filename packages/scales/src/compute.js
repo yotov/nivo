@@ -12,6 +12,7 @@ import sortBy from 'lodash/sortBy'
 import last from 'lodash/last'
 import isDate from 'lodash/isDate'
 import { linearScale } from './linearScale'
+import { logScale } from './logScale'
 import { pointScale } from './pointScale'
 import { timeScale } from './timeScale'
 import { createDateNormalizer } from './timeHelpers'
@@ -47,16 +48,16 @@ export const computeXYScalesForSeries = (_series, xScaleSpec, yScaleSpec, width,
                             ? null
                             : xScale(d.data.xStacked)
                         : d.data.x === null
-                            ? null
-                            : xScale(d.data.x),
+                        ? null
+                        : xScale(d.data.x),
                 y:
                     yScale.stacked === true
                         ? d.data.yStacked === null
                             ? null
                             : yScale(d.data.yStacked)
                         : d.data.y === null
-                            ? null
-                            : yScale(d.data.y),
+                        ? null
+                        : yScale(d.data.y),
             }
         })
     })
@@ -73,6 +74,7 @@ export const computeScale = (spec, xy, width, height) => {
     if (spec.type === 'linear') return linearScale(spec, xy, width, height)
     else if (spec.type === 'point') return pointScale(spec, xy, width, height)
     else if (spec.type === 'time') return timeScale(spec, xy, width, height)
+    else if (spec.type === 'log') return logScale(spec, xy, width, height)
 }
 
 export const generateSeriesXY = (series, xScaleSpec, yScaleSpec) => ({
@@ -84,18 +86,28 @@ export const generateSeriesXY = (series, xScaleSpec, yScaleSpec) => ({
  * Normalize data according to scale type, (time => Date, linear => Number)
  * compute sorted unique values and min/max.
  */
-export const generateSeriesAxis = (series, axis, scaleSpec) => {
+export const generateSeriesAxis = (
+    series,
+    axis,
+    scaleSpec,
+    {
+        getValue = d => d.data[axis],
+        setValue = (d, v) => {
+            d.data[axis] = v
+        },
+    } = {}
+) => {
     if (scaleSpec.type === 'linear') {
         series.forEach(serie => {
             serie.data.forEach(d => {
-                d.data[axis] = d.data[axis] === null ? null : parseFloat(d.data[axis])
+                setValue(d, getValue(d) === null ? null : parseFloat(getValue(d)))
             })
         })
     } else if (scaleSpec.type === 'time' && scaleSpec.format !== 'native') {
         const parseTime = createDateNormalizer(scaleSpec)
         series.forEach(serie => {
             serie.data.forEach(d => {
-                d.data[axis] = d.data[axis] === null ? null : parseTime(d.data[axis])
+                setValue(d, getValue(d) === null ? null : parseTime(getValue(d)))
             })
         })
     }
@@ -103,7 +115,7 @@ export const generateSeriesAxis = (series, axis, scaleSpec) => {
     let all = []
     series.forEach(serie => {
         serie.data.forEach(d => {
-            all.push(d.data[axis])
+            all.push(getValue(d))
         })
     })
 

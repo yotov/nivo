@@ -1,14 +1,21 @@
+/*
+ * This file is part of the nivo project.
+ *
+ * Copyright 2016-present, Raphaël Benitte.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 import * as React from 'react'
 import {
     Dimensions,
     Box,
     Theme,
     MotionProps,
-    ColorProps,
-    GetColor,
     SvgDefsAndFill,
     CartesianMarkerProps,
 } from '@nivo/core'
+import { OrdinalColorsInstruction, InheritedColorProp } from '@nivo/colors'
 import { LegendProps } from '@nivo/legends'
 
 declare module '@nivo/bar' {
@@ -73,57 +80,57 @@ declare module '@nivo/bar' {
         theme: Theme
     }
 
-    export type BarProps = ColorProps<BarDatum> &
-        Partial<{
-            indexBy: string | IndexByFunc
-            keys: string[]
+    export type BarProps = Partial<{
+        indexBy: string | IndexByFunc
+        keys: string[]
 
-            groupMode: 'stacked' | 'grouped'
-            layout: 'horizontal' | 'vertical'
-            reverse: boolean
+        groupMode: 'stacked' | 'grouped'
+        layout: 'horizontal' | 'vertical'
+        reverse: boolean
 
-            innerPadding: number
-            minValue: number | 'auto'
-            margin: Box
-            maxValue: number | 'auto'
-            padding: number
+        innerPadding: number
+        minValue: number | 'auto'
+        margin: Box
+        maxValue: number | 'auto'
+        padding: number
 
-            axisBottom: Axis
-            axisLeft: Axis
-            axisRight: Axis
-            axisTop: Axis
+        axisBottom: Axis | null
+        axisLeft: Axis | null
+        axisRight: Axis | null
+        axisTop: Axis | null
 
-            enableGridX: boolean
-            enableGridY: boolean
+        enableGridX: boolean
+        enableGridY: boolean
 
-            barComponent: React.StatelessComponent<BarItemProps>
+        barComponent: React.StatelessComponent<BarItemProps>
 
-            enableLabel: boolean
-            label: string | AccessorFunc
-            labelFormat: string | LabelFormatter
-            labelLinkColor: string | GetColor<BarDatumWithColor>
-            labelSkipWidth: number
-            labelSkipHeight: number
-            labelTextColor: string | GetColor<BarDatumWithColor>
+        enableLabel: boolean
+        label: string | AccessorFunc
+        labelFormat: string | LabelFormatter
+        labelLinkColor: InheritedColorProp<BarDatumWithColor>
+        labelSkipWidth: number
+        labelSkipHeight: number
+        labelTextColor: InheritedColorProp<BarDatumWithColor>
 
-            borderRadius: number
-            borderWidth: number
-            theme: Theme
+        colors: OrdinalColorsInstruction
+        borderRadius: number
+        borderWidth: number
+        theme: Theme
 
-            isInteractive: boolean
-            tooltipFormat: string | ValueFormatter
-            tooltip: TooltipProp
+        isInteractive: boolean
+        tooltipFormat: string | ValueFormatter
+        tooltip: TooltipProp
 
-            legends: Array<{ dataFrom: 'indexes' | 'keys' } & LegendProps>
+        legends: Array<{ dataFrom: 'indexes' | 'keys' } & LegendProps>
 
-            markers: CartesianMarkerProps[]
-        }>
+        markers: CartesianMarkerProps[]
+    }>
 
     export type Axis = Partial<{
         format: string | LabelFormatter
         legend: string
         legendOffset: number
-        legendPosition: 'start' | 'center' | 'end'
+        legendPosition: 'start' | 'middle' | 'end'
         orient: 'top' | 'right' | 'bottom' | 'left'
         tickPadding: number
         tickRotation: number
@@ -131,11 +138,22 @@ declare module '@nivo/bar' {
         tickValues: number | string[] | number[]
     }>
 
+    export enum BarLayerType {
+        Grid = 'grid',
+        Axes = 'axes',
+        Bars = 'bars',
+        Markers = 'markers',
+        Legends = 'legends',
+    }
+    export type BarCustomLayer = (props: any) => React.ReactNode
+    export type Layer = BarLayerType | BarCustomLayer
+
     export type BarSvgProps = Data &
         BarProps &
         MotionProps &
         SvgDefsAndFill<BarDatum> &
         Partial<{
+            layers: Layer[]
             onClick: (datum: BarExtendedDatum, event: React.MouseEvent<SVGRectElement>) => void
         }>
 

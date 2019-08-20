@@ -8,9 +8,8 @@
  */
 import React from 'react'
 import PropTypes from 'prop-types'
-import { motionPropTypes } from '@nivo/core'
-import { SmartMotion } from '@nivo/core'
-import { BasicTooltip } from '@nivo/core'
+import { motionPropTypes, SmartMotion } from '@nivo/core'
+import { BasicTooltip } from '@nivo/tooltip'
 
 const StreamLayers = ({
     layers,
@@ -22,6 +21,7 @@ const StreamLayers = ({
 
     showTooltip,
     hideTooltip,
+    getTooltipLabel,
 
     animate,
     motionStiffness,
@@ -31,11 +31,16 @@ const StreamLayers = ({
         return (
             <g>
                 {layers.map((layer, i) => {
-                    const { id, path, color } = layer
+                    const { path, color } = layer
 
                     const handleTooltip = e =>
                         showTooltip(
-                            <BasicTooltip id={id} enableChip={true} color={color} theme={theme} />,
+                            <BasicTooltip
+                                id={getTooltipLabel(layer)}
+                                enableChip={true}
+                                color={color}
+                                theme={theme}
+                            />,
                             e
                         )
 
@@ -65,11 +70,16 @@ const StreamLayers = ({
     return (
         <g>
             {layers.map((layer, i) => {
-                const { id, path, color } = layer
+                const { path, color } = layer
 
                 const handleTooltip = e =>
                     showTooltip(
-                        <BasicTooltip id={id} enableChip={true} color={color} theme={theme} />,
+                        <BasicTooltip
+                            id={getTooltipLabel(layer)}
+                            enableChip={true}
+                            color={color}
+                            theme={theme}
+                        />,
                         e
                     )
 
@@ -105,6 +115,9 @@ StreamLayers.propTypes = {
     borderWidth: PropTypes.number.isRequired,
     getBorderColor: PropTypes.func.isRequired,
     theme: PropTypes.object.isRequired,
+    showTooltip: PropTypes.func.isRequired,
+    hideTooltip: PropTypes.func.isRequired,
+    getTooltipLabel: PropTypes.func.isRequired,
     ...motionPropTypes,
 }
 

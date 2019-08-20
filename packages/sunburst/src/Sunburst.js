@@ -17,15 +17,13 @@ import withProps from 'recompose/withProps'
 import pure from 'recompose/pure'
 import { partition as Partition, hierarchy } from 'd3-hierarchy'
 import { arc } from 'd3-shape'
+import { withTheme, withDimensions, getAccessorFor, Container, SvgWrapper } from '@nivo/core'
 import {
+    getOrdinalColorScale,
+    ordinalColorsPropType,
+    inheritedColorPropType,
     getInheritedColorGenerator,
-    withTheme,
-    withDimensions,
-    withColors,
-    getAccessorFor,
-    Container,
-    SvgWrapper,
-} from '@nivo/core'
+} from '@nivo/colors'
 import SunburstArc from './SunburstArc'
 
 const getAncestor = node => {
@@ -37,7 +35,6 @@ const getAncestor = node => {
 const Sunburst = ({
     nodes,
 
-    // dimensions
     margin, // eslint-disable-line react/prop-types
     centerX,
     centerY,
@@ -46,33 +43,32 @@ const Sunburst = ({
 
     arcGenerator,
 
-    // border
     borderWidth,
     borderColor,
 
-    // theming
     theme, // eslint-disable-line react/prop-types
 
-    // interactivity
     isInteractive,
 }) => {
     return (
-        <Container isInteractive={isInteractive} theme={theme}>
+        <Container isInteractive={isInteractive} theme={theme} animate={false}>
             {({ showTooltip, hideTooltip }) => (
                 <SvgWrapper width={outerWidth} height={outerHeight} margin={margin} theme={theme}>
                     <g transform={`translate(${centerX}, ${centerY})`}>
-                        {nodes.filter(node => node.depth > 0).map((node, i) => (
-                            <SunburstArc
-                                key={i}
-                                node={node}
-                                arcGenerator={arcGenerator}
-                                borderWidth={borderWidth}
-                                borderColor={borderColor}
-                                showTooltip={showTooltip}
-                                hideTooltip={hideTooltip}
-                                theme={theme}
-                            />
-                        ))}
+                        {nodes
+                            .filter(node => node.depth > 0)
+                            .map((node, i) => (
+                                <SunburstArc
+                                    key={i}
+                                    node={node}
+                                    arcGenerator={arcGenerator}
+                                    borderWidth={borderWidth}
+                                    borderColor={borderColor}
+                                    showTooltip={showTooltip}
+                                    hideTooltip={hideTooltip}
+                                    theme={theme}
+                                />
+                            ))}
                     </g>
                 </SvgWrapper>
             )}
@@ -97,13 +93,12 @@ Sunburst.propTypes = {
     centerX: PropTypes.number.isRequired, // computed
     centerY: PropTypes.number.isRequired, // computed
 
-    // border
+    colors: ordinalColorsPropType.isRequired,
     borderWidth: PropTypes.number.isRequired,
     borderColor: PropTypes.string.isRequired,
 
-    childColor: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
+    childColor: inheritedColorPropType.isRequired,
 
-    // interactivity
     isInteractive: PropTypes.bool,
 }
 
@@ -113,13 +108,12 @@ export const SunburstDefaultProps = {
 
     cornerRadius: 0,
 
-    // border
+    colors: { scheme: 'nivo' },
     borderWidth: 1,
     borderColor: 'white',
 
-    childColor: 'inherit',
+    childColor: { from: 'color' },
 
-    // interactivity
     isInteractive: true,
 }
 
@@ -127,7 +121,9 @@ const enhance = compose(
     defaultProps(SunburstDefaultProps),
     withTheme(),
     withDimensions(),
-    withColors(),
+    withPropsOnChange(['colors'], ({ colors }) => ({
+        getColor: getOrdinalColorScale(colors, 'id'),
+    })),
     withProps(({ width, height }) => {
         const radius = Math.min(width, height) / 2
 
@@ -152,12 +148,12 @@ const enhance = compose(
     withPropsOnChange(['data', 'getValue'], ({ data, getValue }) => ({
         data: hierarchy(data).sum(getValue),
     })),
-    withPropsOnChange(['childColor'], ({ childColor }) => ({
-        getChildColor: getInheritedColorGenerator(childColor),
+    withPropsOnChange(['childColor', 'theme'], ({ childColor, theme }) => ({
+        getChildColor: getInheritedColorGenerator(childColor, theme),
     })),
     withPropsOnChange(
         ['data', 'partition', 'getIdentity', 'getChildColor'],
-        ({ data, partition, getIdentity, getColor, getChildColor }) => {
+        ({ data, partition, getIdentity, getColor, childColor, getChildColor }) => {
             const total = data.value
 
             const nodes = sortBy(partition(cloneDeep(data)).descendants(), 'depth')
@@ -175,7 +171,7 @@ const enhance = compose(
                     ancestor,
                 })
 
-                if (node.depth === 1) {
+                if (node.depth === 1 || childColor === 'noinherit') {
                     node.data.color = getColor(node.data)
                 } else if (node.depth > 1) {
                     node.data.color = getChildColor(node.parent.data)

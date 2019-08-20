@@ -2,8 +2,10 @@ import { camelCase, upperFirst } from 'lodash'
 import babel from 'rollup-plugin-babel'
 import resolve from 'rollup-plugin-node-resolve'
 import stripBanner from 'rollup-plugin-strip-banner'
+import cleanup from 'rollup-plugin-cleanup'
 
 const pkg = process.env.PACKAGE
+const isWatching = process.env.ROLLUP_WATCH === 'TRUE'
 
 const externals = [
     'prop-types',
@@ -43,29 +45,47 @@ const commonPlugins = [
     }),
     babel({
         exclude: 'node_modules/**',
-        plugins: ['external-helpers']
+        externalHelpers: true,
+        presets: [
+            '@nivo/babel-preset'
+        ]
     }),
+    cleanup()
 ]
 
-export default [
+const configs = [
     {
         ...common,
         output: {
-            file: `./packages/${pkg}/cjs/nivo-${pkg}.js`,
+            file: `./packages/${pkg}/dist/nivo-${pkg}.esm.js`,
+            format: 'esm',
+            name: `@nivo/${pkg}`,
+        },
+        plugins: commonPlugins,
+    }
+]
+
+if (!isWatching) {
+    configs.push({
+        ...common,
+        output: {
+            file: `./packages/${pkg}/dist/nivo-${pkg}.cjs.js`,
             format: 'cjs',
             name: `@nivo/${pkg}`,
         },
         plugins: commonPlugins,
-    },
-    {
+    })
+    configs.push({
         ...common,
         output: {
-            file: `./packages/${pkg}/umd/nivo-${pkg}.js`,
+            file: `./packages/${pkg}/dist/nivo-${pkg}.umd.js`,
             format: 'umd',
             extend: true,
             name: 'nivo',
             globals: mapGlobal,
         },
         plugins: commonPlugins,
-    },
-]
+    })
+}
+
+export default configs

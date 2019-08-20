@@ -9,9 +9,8 @@
 import React from 'react'
 import range from 'lodash/range'
 import sortBy from 'lodash/sortBy'
-import { bindDefs } from '@nivo/core'
-import { Container, SvgWrapper } from '@nivo/core'
-import { Axes, Grid } from '@nivo/core'
+import { bindDefs, Container, SvgWrapper } from '@nivo/core'
+import { Axes, Grid } from '@nivo/axes'
 import { BoxLegendSvg } from '@nivo/legends'
 import StreamLayers from './StreamLayers'
 import StreamDots from './StreamDots'
@@ -61,13 +60,13 @@ const Stream = ({
     motionDamping,
 
     isInteractive,
-    tooltipFormat,
-
+    getTooltipValue,
+    getTooltipLabel,
     enableStackTooltip,
 
     legends,
 }) => {
-    const enhancedLayers = layers.map((points, i) => {
+    const enhancedLayers = layers.map((points, layerIndex) => {
         const layer = points.map((point, i) => ({
             index: i,
             x: xScale(i),
@@ -77,10 +76,10 @@ const Stream = ({
         }))
 
         return {
-            id: keys[i],
+            id: keys[layerIndex],
             layer,
             path: areaGenerator(layer),
-            color: getColor(i),
+            color: getColor({ index: layerIndex }),
         }
     })
 
@@ -97,16 +96,16 @@ const Stream = ({
         ),
     }))
 
-    const motionProps = {
-        animate,
-        motionDamping,
-        motionStiffness,
-    }
-
     const boundDefs = bindDefs(defs, enhancedLayers, fill)
 
     return (
-        <Container isInteractive={isInteractive} theme={theme}>
+        <Container
+            isInteractive={isInteractive}
+            theme={theme}
+            animate={animate}
+            motionDamping={motionDamping}
+            motionStiffness={motionStiffness}
+        >
             {({ showTooltip, hideTooltip }) => (
                 <SvgWrapper
                     width={outerWidth}
@@ -116,12 +115,10 @@ const Stream = ({
                     theme={theme}
                 >
                     <Grid
-                        theme={theme}
                         width={width}
                         height={height}
                         xScale={enableGridX ? xScale : null}
                         yScale={enableGridY ? yScale : null}
-                        {...motionProps}
                     />
                     <StreamLayers
                         layers={enhancedLayers}
@@ -130,20 +127,21 @@ const Stream = ({
                         getBorderColor={getBorderColor}
                         showTooltip={showTooltip}
                         hideTooltip={hideTooltip}
+                        getTooltipLabel={getTooltipLabel}
                         theme={theme}
-                        {...motionProps}
+                        animate={animate}
+                        motionDamping={motionDamping}
+                        motionStiffness={motionStiffness}
                     />
                     <Axes
                         xScale={xScale}
                         yScale={yScale}
                         width={width}
                         height={height}
-                        theme={theme}
                         top={axisTop}
                         right={axisRight}
                         bottom={axisBottom}
                         left={axisLeft}
-                        {...motionProps}
                     />
                     {enableDots &&
                         enhancedLayers.map(layer => (
@@ -158,20 +156,22 @@ const Stream = ({
                                 getColor={getDotColor}
                                 getBorderWidth={getDotBorderWidth}
                                 getBorderColor={getDotBorderColor}
-                                {...motionProps}
+                                animate={animate}
+                                motionDamping={motionDamping}
+                                motionStiffness={motionStiffness}
                             />
                         ))}
-                    {isInteractive &&
-                        enableStackTooltip && (
-                            <StreamSlices
-                                slices={slices}
-                                height={height}
-                                showTooltip={showTooltip}
-                                hideTooltip={hideTooltip}
-                                theme={theme}
-                                tooltipFormat={tooltipFormat}
-                            />
-                        )}
+                    {isInteractive && enableStackTooltip && (
+                        <StreamSlices
+                            slices={slices}
+                            height={height}
+                            showTooltip={showTooltip}
+                            hideTooltip={hideTooltip}
+                            theme={theme}
+                            getTooltipValue={getTooltipValue}
+                            getTooltipLabel={getTooltipLabel}
+                        />
+                    )}
                     {legends.map((legend, i) => {
                         const legendData = enhancedLayers
                             .map(l => ({

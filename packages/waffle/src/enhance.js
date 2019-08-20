@@ -11,19 +11,20 @@ import defaultProps from 'recompose/defaultProps'
 import withPropsOnChange from 'recompose/withPropsOnChange'
 import withState from 'recompose/withState'
 import pure from 'recompose/pure'
-import { withDimensions, withTheme, withMotion, withColors } from '@nivo/core'
-import { getInheritedColorGenerator } from '@nivo/core'
-import { bindDefs } from '@nivo/core'
+import { withDimensions, withTheme, withMotion, bindDefs } from '@nivo/core'
+import { getOrdinalColorScale, getInheritedColorGenerator } from '@nivo/colors'
 import * as props from './props'
 import { computeGrid } from './compute'
 
 const commonEnhancers = [
     withDimensions(),
-    withColors({ defaultColorBy: 'id' }),
     withTheme(),
     withMotion(),
-    withPropsOnChange(['borderColor'], ({ borderColor }) => ({
-        getBorderColor: getInheritedColorGenerator(borderColor),
+    withPropsOnChange(['colors'], ({ colors }) => ({
+        getColor: getOrdinalColorScale(colors, 'id'),
+    })),
+    withPropsOnChange(['borderColor', 'theme'], ({ borderColor, theme }) => ({
+        getBorderColor: getInheritedColorGenerator(borderColor, theme),
     })),
     withState('currentCell', 'setCurrentCell', null),
     withPropsOnChange(['rows', 'columns', 'total'], ({ rows, columns, total }) => ({

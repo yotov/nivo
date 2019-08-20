@@ -6,33 +6,18 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+import React, { memo } from 'react'
 import range from 'lodash/range'
-import React from 'react'
 import PropTypes from 'prop-types'
-import pure from 'recompose/pure'
 import { TransitionMotion, spring } from 'react-motion'
-import { motionPropTypes } from '@nivo/core'
+import { useTheme, useMotionConfig } from '@nivo/core'
 import { lineRadial, curveLinearClosed } from 'd3-shape'
 
 const levelWillEnter = () => ({ r: 0 })
 
-const RadarGridLevels = ({
-    shape,
-    radii,
-    angleStep,
-    dataLength,
-
-    theme,
-
-    // motion
-    animate,
-    motionStiffness,
-    motionDamping,
-}) => {
-    const springConfig = {
-        motionDamping,
-        motionStiffness,
-    }
+const RadarGridLevels = memo(({ shape, radii, angleStep, dataLength }) => {
+    const theme = useTheme()
+    const { animate, springConfig } = useMotionConfig()
 
     const levelsTransitionProps = {
         willEnter: levelWillEnter,
@@ -61,7 +46,12 @@ const RadarGridLevels = ({
                 {interpolatedStyles => (
                     <g>
                         {interpolatedStyles.map(({ key, style }) => (
-                            <circle key={key} fill="none" r={style.r} {...theme.grid.line} />
+                            <circle
+                                key={key}
+                                fill="none"
+                                r={Math.max(style.r, 0)}
+                                {...theme.grid.line}
+                            />
                         ))}
                     </g>
                 )}
@@ -83,7 +73,7 @@ const RadarGridLevels = ({
                         key={`level.${i}`}
                         fill="none"
                         d={radarLineGenerator.radius(radius)(points)}
-                        {...theme.grid}
+                        {...theme.grid.line}
                     />
                 ))}
             </g>
@@ -99,25 +89,21 @@ const RadarGridLevels = ({
                             key={key}
                             fill="none"
                             d={radarLineGenerator.radius(style.r)(points)}
-                            {...theme.grid}
+                            {...theme.grid.line}
                         />
                     ))}
                 </g>
             )}
         </TransitionMotion>
     )
-}
+})
 
+RadarGridLevels.displayName = 'RadarGridLevels'
 RadarGridLevels.propTypes = {
     shape: PropTypes.oneOf(['circular', 'linear']).isRequired,
     radii: PropTypes.arrayOf(PropTypes.number).isRequired,
     angleStep: PropTypes.number.isRequired,
     dataLength: PropTypes.number.isRequired,
-
-    theme: PropTypes.object.isRequired,
-
-    // motion
-    ...motionPropTypes,
 }
 
-export default pure(RadarGridLevels)
+export default RadarGridLevels

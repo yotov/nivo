@@ -1,13 +1,20 @@
 /* eslint-disable import/no-extraneous-dependencies, import/no-unresolved, import/extensions */
 
-import { configure, setAddon } from '@storybook/react'
-import infoAddon, { setDefaults } from '@storybook/addon-info'
-import './style.css'
+import { configure, addParameters, addDecorator } from '@storybook/react'
+import { withInfo } from '@storybook/addon-info'
+import theme from './theme'
 
-setDefaults({
+addParameters({
+    options: {
+        theme,
+    }
+})
+
+addDecorator(withInfo({
     header: true,
     inline: true,
     propTables: false,
+    source: false,
     maxPropObjectKeys: 10000,
     maxPropArrayLength: 10000,
     maxPropStringLength: 10000,
@@ -34,11 +41,11 @@ setDefaults({
             },
         },
     },
-})
-setAddon(infoAddon)
+}))
 
 function loadStories() {
     require('../packages/bar/stories/bar.stories')
+    require('../packages/bar/stories/raceChart.stories')
     require('../packages/bar/stories/barCanvas.stories')
     require('../packages/bullet/stories/bullet.stories')
     require('../packages/calendar/stories/calendar.stories')
@@ -47,6 +54,7 @@ function loadStories() {
     require('../packages/circle-packing/stories/bubbleHtml.stories')
     require('../packages/heatmap/stories/heatmap.stories')
     require('../packages/line/stories/line.stories')
+    require('../packages/line/stories/LineCanvas.stories')
     require('../packages/pie/stories/pie.stories')
     require('../packages/radar/stories/radar.stories')
     require('../packages/sankey/stories/sankey.stories')
@@ -56,6 +64,9 @@ function loadStories() {
     require('../packages/sunburst/stories/sunburst.stories')
     require('../packages/treemap/stories/treemap.stories')
     require('../packages/treemap/stories/treemapHtml.stories')
+    require('../packages/swarmplot/stories/SwarmPlot.stories')
+    require('../packages/swarmplot/stories/SwarmPlotCanvas.stories')
+    // require('../packages/voronoi/stories/voronoi.stories')
     require('../packages/waffle/stories/waffle.stories')
     require('../packages/waffle/stories/waffle-html.stories')
     require('../packages/waffle/stories/waffle-canvas.stories')

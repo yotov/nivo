@@ -12,10 +12,16 @@ import defaultProps from 'recompose/defaultProps'
 import withPropsOnChange from 'recompose/withPropsOnChange'
 import withStateHandlers from 'recompose/withStateHandlers'
 import pure from 'recompose/pure'
-import { withHierarchy, withDimensions, withTheme, withMotion, withColors } from '@nivo/core'
-import { getAccessorFor, getLabelGenerator } from '@nivo/core'
-import { getInheritedColorGenerator } from '@nivo/core'
-import { bindDefs } from '@nivo/core'
+import {
+    withHierarchy,
+    withDimensions,
+    withTheme,
+    withMotion,
+    getAccessorFor,
+    getLabelGenerator,
+    bindDefs,
+} from '@nivo/core'
+import { getOrdinalColorScale, getInheritedColorGenerator } from '@nivo/colors'
 import { computeNodes, computeZoom } from './compute'
 import * as props from './props'
 
@@ -23,8 +29,9 @@ const commonEnhancers = [
     withHierarchy(),
     withDimensions(),
     withTheme(),
-    withColors({ defaultColorBy: 'depth' }),
-
+    withPropsOnChange(['colors', 'colorBy'], ({ colors, colorBy }) => ({
+        getColor: getOrdinalColorScale(colors, colorBy),
+    })),
     withPropsOnChange(['width', 'height', 'padding'], ({ width, height, padding }) => ({
         pack: pack()
             .size([width, height])
@@ -36,16 +43,16 @@ const commonEnhancers = [
     })),
 
     // border
-    withPropsOnChange(['borderColor'], ({ borderColor }) => ({
-        getBorderColor: getInheritedColorGenerator(borderColor),
+    withPropsOnChange(['borderColor', 'theme'], ({ borderColor, theme }) => ({
+        getBorderColor: getInheritedColorGenerator(borderColor, theme),
     })),
 
     // labels
     withPropsOnChange(['label', 'labelFormat'], ({ label, labelFormat }) => ({
         getLabel: getLabelGenerator(label, labelFormat),
     })),
-    withPropsOnChange(['labelTextColor'], ({ labelTextColor }) => ({
-        getLabelTextColor: getInheritedColorGenerator(labelTextColor),
+    withPropsOnChange(['labelTextColor', 'theme'], ({ labelTextColor, theme }) => ({
+        getLabelTextColor: getInheritedColorGenerator(labelTextColor, theme),
     })),
 
     // zoom

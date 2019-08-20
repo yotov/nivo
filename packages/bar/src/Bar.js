@@ -6,15 +6,16 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-import React from 'react'
+import React, { Fragment } from 'react'
 import { TransitionMotion, spring } from 'react-motion'
-import { bindDefs, Container, SvgWrapper, Grid, CartesianMarkers } from '@nivo/core'
-import { Axes } from '@nivo/axes'
+import { bindDefs, Container, SvgWrapper, CartesianMarkers } from '@nivo/core'
+import { Axes, Grid } from '@nivo/axes'
 import { BoxLegendSvg } from '@nivo/legends'
-import { generateGroupedBars, generateStackedBars } from './compute'
+import { generateGroupedBars, generateStackedBars, getLegendData } from './compute'
 import setDisplayName from 'recompose/setDisplayName'
 import enhance from './enhance'
 import { BarPropTypes } from './props'
+import BarAnnotations from './BarAnnotations'
 
 const barWillEnterHorizontal = ({ style }) => ({
     x: style.x.val,
@@ -44,72 +45,70 @@ const barWillLeaveVertical = springConfig => ({ style }) => ({
     height: spring(0, springConfig),
 })
 
-const Bar = ({
-    data,
-    getIndex,
-    keys,
+const Bar = props => {
+    const {
+        data,
+        getIndex,
+        keys,
 
-    groupMode,
-    layout,
-    reverse,
-    minValue,
-    maxValue,
+        groupMode,
+        layout,
+        reverse,
+        minValue,
+        maxValue,
 
-    margin,
-    width,
-    height,
-    outerWidth,
-    outerHeight,
-    padding,
-    innerPadding,
+        margin,
+        width,
+        height,
+        outerWidth,
+        outerHeight,
+        padding,
+        innerPadding,
 
-    // axes & grid
-    axisTop,
-    axisRight,
-    axisBottom,
-    axisLeft,
-    enableGridX,
-    enableGridY,
-    gridXValues,
-    gridYValues,
+        axisTop,
+        axisRight,
+        axisBottom,
+        axisLeft,
+        enableGridX,
+        enableGridY,
+        gridXValues,
+        gridYValues,
 
-    // customization
-    barComponent,
+        layers,
+        barComponent,
 
-    // labels
-    enableLabel,
-    getLabel,
-    labelSkipWidth,
-    labelSkipHeight,
-    getLabelTextColor,
+        enableLabel,
+        getLabel,
+        labelSkipWidth,
+        labelSkipHeight,
+        getLabelTextColor,
 
-    // markers
-    markers,
+        markers,
 
-    // theming
-    theme,
-    getColor,
-    defs,
-    fill,
-    borderRadius,
-    borderWidth,
-    getBorderColor,
+        theme,
+        getColor,
+        defs,
+        fill,
+        borderRadius,
+        borderWidth,
+        getBorderColor,
 
-    // motion
-    animate,
-    motionStiffness,
-    motionDamping,
+        annotations,
 
-    // interactivity
-    isInteractive,
-    tooltipFormat,
-    tooltip,
-    onClick,
-    onMouseEnter,
-    onMouseLeave,
+        isInteractive,
+        getTooltipLabel,
+        tooltipFormat,
+        tooltip,
+        onClick,
+        onMouseEnter,
+        onMouseLeave,
 
-    legends,
-}) => {
+        legends,
+
+        animate,
+        motionStiffness,
+        motionDamping,
+    } = props
     const options = {
         layout,
         reverse,
@@ -156,25 +155,14 @@ const Bar = ({
         targetKey: 'data.fill',
     })
 
-    const legendDataForKeys = result.bars
-        .filter(bar => bar.data.index === 0)
-        .map(bar => ({
-            id: bar.data.id,
-            label: bar.data.id,
-            color: bar.color,
-            fill: bar.data.fill,
-        }))
-        .reverse()
-
-    const legendDataForIndexes = result.bars.filter(bar => bar.data.id === keys[0]).map(bar => ({
-        id: bar.data.indexValue,
-        label: bar.data.indexValue,
-        color: bar.color,
-        fill: bar.data.fill,
-    }))
-
     return (
-        <Container isInteractive={isInteractive} theme={theme}>
+        <Container
+            isInteractive={isInteractive}
+            theme={theme}
+            animate={animate}
+            motionStiffness={motionStiffness}
+            motionDamping={motionDamping}
+        >
             {({ showTooltip, hideTooltip }) => {
                 const commonProps = {
                     borderRadius,
@@ -188,6 +176,7 @@ const Bar = ({
                     onMouseEnter,
                     onMouseLeave,
                     theme,
+                    getTooltipLabel,
                     tooltipFormat,
                     tooltip,
                 }
@@ -196,6 +185,7 @@ const Bar = ({
                 if (animate === true) {
                     bars = (
                         <TransitionMotion
+                            key="bars"
                             willEnter={willEnter}
                             willLeave={willLeave}
                             styles={result.bars.map(bar => ({
@@ -246,6 +236,77 @@ const Bar = ({
                     )
                 }
 
+                const layerById = {
+                    grid: (
+                        <Grid
+                            key="grid"
+                            width={width}
+                            height={height}
+                            xScale={enableGridX ? result.xScale : null}
+                            yScale={enableGridY ? result.yScale : null}
+                            xValues={gridXValues}
+                            yValues={gridYValues}
+                        />
+                    ),
+                    axes: (
+                        <Axes
+                            key="axes"
+                            xScale={result.xScale}
+                            yScale={result.yScale}
+                            width={width}
+                            height={height}
+                            top={axisTop}
+                            right={axisRight}
+                            bottom={axisBottom}
+                            left={axisLeft}
+                        />
+                    ),
+                    bars,
+                    markers: (
+                        <CartesianMarkers
+                            key="markers"
+                            markers={markers}
+                            width={width}
+                            height={height}
+                            xScale={result.xScale}
+                            yScale={result.yScale}
+                            theme={theme}
+                        />
+                    ),
+                    legends: legends.map((legend, i) => {
+                        const legendData = getLegendData({
+                            from: legend.dataFrom,
+                            bars: result.bars,
+                            layout,
+                            groupMode,
+                            reverse,
+                        })
+
+                        if (legendData === undefined) return null
+
+                        return (
+                            <BoxLegendSvg
+                                key={i}
+                                {...legend}
+                                containerWidth={width}
+                                containerHeight={height}
+                                data={legendData}
+                                theme={theme}
+                            />
+                        )
+                    }),
+                    annotations: (
+                        <BarAnnotations
+                            key="annotations"
+                            innerWidth={width}
+                            innerHeight={height}
+                            bars={result.bars}
+                            annotations={annotations}
+                            {...motionProps}
+                        />
+                    ),
+                }
+
                 return (
                     <SvgWrapper
                         width={outerWidth}
@@ -254,57 +315,11 @@ const Bar = ({
                         defs={boundDefs}
                         theme={theme}
                     >
-                        <Grid
-                            theme={theme}
-                            width={width}
-                            height={height}
-                            xScale={enableGridX ? result.xScale : null}
-                            yScale={enableGridY ? result.yScale : null}
-                            xValues={gridXValues}
-                            yValues={gridYValues}
-                            {...motionProps}
-                        />
-                        <Axes
-                            xScale={result.xScale}
-                            yScale={result.yScale}
-                            width={width}
-                            height={height}
-                            theme={theme}
-                            top={axisTop}
-                            right={axisRight}
-                            bottom={axisBottom}
-                            left={axisLeft}
-                            {...motionProps}
-                        />
-                        {bars}
-                        <CartesianMarkers
-                            markers={markers}
-                            width={width}
-                            height={height}
-                            xScale={result.xScale}
-                            yScale={result.yScale}
-                            theme={theme}
-                        />
-                        {legends.map((legend, i) => {
-                            let legendData
-                            if (legend.dataFrom === 'keys') {
-                                legendData = legendDataForKeys
-                            } else if (legend.dataFrom === 'indexes') {
-                                legendData = legendDataForIndexes
+                        {layers.map((layer, i) => {
+                            if (typeof layer === 'function') {
+                                return <Fragment key={i}>{layer({ ...props, ...result })}</Fragment>
                             }
-
-                            if (legendData === undefined) return null
-
-                            return (
-                                <BoxLegendSvg
-                                    key={i}
-                                    {...legend}
-                                    containerWidth={width}
-                                    containerHeight={height}
-                                    data={legendData}
-                                    theme={theme}
-                                />
-                            )
+                            return layerById[layer]
                         })}
                     </SvgWrapper>
                 )

@@ -1,3 +1,11 @@
+/*
+ * This file is part of the nivo project.
+ *
+ * Copyright 2016-present, Raphaël Benitte.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 import omit from 'lodash/omit'
 import upperFirst from 'lodash/upperFirst'
 
@@ -10,13 +18,10 @@ export const settingsMapper = (mapping, { exclude = [] } = {}) => (settings, opt
         }
     })
 
-    return Object.assign({}, omit(settings, exclude), overrides)
-}
-
-export const mapInheritedColor = ({ type, ...config }) => {
-    if (type === 'custom') return config.color
-    if (['inherit:darker', 'inherit:brighter'].includes(type)) return `${type}(${config.gamma})`
-    return type
+    return {
+        ...omit(settings, exclude),
+        ...overrides,
+    }
 }
 
 export const mapAxis = type => (value, settings) =>

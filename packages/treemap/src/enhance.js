@@ -12,11 +12,17 @@ import compose from 'recompose/compose'
 import defaultProps from 'recompose/defaultProps'
 import withPropsOnChange from 'recompose/withPropsOnChange'
 import pure from 'recompose/pure'
-import { withHierarchy, withDimensions, withTheme, withMotion, withColors } from '@nivo/core'
-import { getAccessorFor, getLabelGenerator } from '@nivo/core'
-import { treeMapTileFromProp } from '@nivo/core'
-import { getInheritedColorGenerator } from '@nivo/core'
-import { bindDefs } from '@nivo/core'
+import {
+    withHierarchy,
+    withDimensions,
+    withTheme,
+    withMotion,
+    getAccessorFor,
+    getLabelGenerator,
+    treeMapTileFromProp,
+    bindDefs,
+} from '@nivo/core'
+import { getOrdinalColorScale, getInheritedColorGenerator } from '@nivo/colors'
 import * as props from './props'
 
 const computeNodePath = (node, getIdentity) =>
@@ -28,20 +34,22 @@ const computeNodePath = (node, getIdentity) =>
 const commonEnhancers = [
     withHierarchy(),
     withDimensions(),
-    withColors({ defaultColorBy: 'depth' }),
     withTheme(),
     withMotion(),
+    withPropsOnChange(['colors', 'colorBy'], ({ colors, colorBy }) => ({
+        getColor: getOrdinalColorScale(colors, colorBy),
+    })),
     withPropsOnChange(['identity'], ({ identity }) => ({
         getIdentity: getAccessorFor(identity),
     })),
-    withPropsOnChange(['borderColor'], ({ borderColor }) => ({
-        getBorderColor: getInheritedColorGenerator(borderColor),
+    withPropsOnChange(['borderColor', 'theme'], ({ borderColor, theme }) => ({
+        getBorderColor: getInheritedColorGenerator(borderColor, theme),
     })),
     withPropsOnChange(['label', 'labelFormat'], ({ label, labelFormat }) => ({
         getLabel: getLabelGenerator(label, labelFormat),
     })),
-    withPropsOnChange(['labelTextColor'], ({ labelTextColor }) => ({
-        getLabelTextColor: getInheritedColorGenerator(labelTextColor),
+    withPropsOnChange(['labelTextColor', 'theme'], ({ labelTextColor, theme }) => ({
+        getLabelTextColor: getInheritedColorGenerator(labelTextColor, theme),
     })),
     withPropsOnChange(
         ['width', 'height', 'tile', 'innerPadding', 'outerPadding'],

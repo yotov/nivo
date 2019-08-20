@@ -6,12 +6,10 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-import min from 'lodash/min'
-import max from 'lodash/max'
 import range from 'lodash/range'
-import isFunction from 'lodash/isFunction'
 import { stack as d3Stack, area } from 'd3-shape'
 import { scaleLinear, scalePoint } from 'd3-scale'
+import { format as d3Format } from 'd3-format'
 import compose from 'recompose/compose'
 import defaultProps from 'recompose/defaultProps'
 import pure from 'recompose/pure'
@@ -23,13 +21,14 @@ import {
     withCurve,
     withDimensions,
     withMotion,
-    getColorRange,
-    getInheritedColorGenerator,
 } from '@nivo/core'
+import { getOrdinalColorScale, getInheritedColorGenerator } from '@nivo/colors'
 import { StreamDefaultProps } from './props'
 
-const stackMin = layers => min(layers.reduce((acc, layer) => [...acc, ...layer.map(d => d[0])], []))
-const stackMax = layers => max(layers.reduce((acc, layer) => [...acc, ...layer.map(d => d[1])], []))
+const stackMin = layers =>
+    Math.min(...layers.reduce((acc, layer) => [...acc, ...layer.map(d => d[0])], []))
+const stackMax = layers =>
+    Math.max(...layers.reduce((acc, layer) => [...acc, ...layer.map(d => d[1])], []))
 
 export default Component =>
     compose(
@@ -46,10 +45,10 @@ export default Component =>
                 .curve(curveInterpolator),
         })),
         withPropsOnChange(['colors'], ({ colors }) => ({
-            getColor: getColorRange(colors),
+            getColor: getOrdinalColorScale(colors, 'index'),
         })),
-        withPropsOnChange(['borderColor'], ({ borderColor }) => ({
-            getBorderColor: getInheritedColorGenerator(borderColor),
+        withPropsOnChange(['borderColor', 'theme'], ({ borderColor, theme }) => ({
+            getBorderColor: getInheritedColorGenerator(borderColor, theme),
         })),
         withPropsOnChange(['keys', 'offsetType', 'order'], ({ keys, offsetType, order }) => ({
             stack: d3Stack()
@@ -82,16 +81,36 @@ export default Component =>
             }
         ),
         withPropsOnChange(['dotSize'], ({ dotSize }) => ({
-            getDotSize: isFunction(dotSize) ? dotSize : () => dotSize,
+            getDotSize: typeof dotSize === 'function' ? dotSize : () => dotSize,
         })),
-        withPropsOnChange(['dotColor'], ({ dotColor }) => ({
-            getDotColor: getInheritedColorGenerator(dotColor),
+        withPropsOnChange(['dotColor', 'theme'], ({ dotColor, theme }) => ({
+            getDotColor: getInheritedColorGenerator(dotColor, theme),
         })),
         withPropsOnChange(['dotBorderWidth'], ({ dotBorderWidth }) => ({
-            getDotBorderWidth: isFunction(dotBorderWidth) ? dotBorderWidth : () => dotBorderWidth,
+            getDotBorderWidth:
+                typeof dotBorderWidth === 'function' ? dotBorderWidth : () => dotBorderWidth,
         })),
-        withPropsOnChange(['dotBorderColor'], ({ dotBorderColor }) => ({
-            getDotBorderColor: getInheritedColorGenerator(dotBorderColor),
+        withPropsOnChange(['dotBorderColor', 'theme'], ({ dotBorderColor, theme }) => ({
+            getDotBorderColor: getInheritedColorGenerator(dotBorderColor, theme),
         })),
+        withPropsOnChange(['tooltipLabel', 'tooltipFormat'], ({ tooltipLabel, tooltipFormat }) => {
+            let getTooltipLabel = d => d.id
+            if (typeof tooltipLabel === 'function') {
+                getTooltipLabel = tooltipLabel
+            }
+
+            let getTooltipValue = d => d.value
+            if (typeof tooltipFormat === 'function') {
+                getTooltipValue = tooltipFormat
+            } else if (typeof tooltipFormat === 'string' || tooltipFormat instanceof String) {
+                const formatter = d3Format(tooltipFormat)
+                getTooltipValue = d => formatter(d.value)
+            }
+
+            return {
+                getTooltipValue,
+                getTooltipLabel,
+            }
+        }),
         pure
     )(Component)

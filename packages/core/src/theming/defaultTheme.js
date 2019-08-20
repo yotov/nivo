@@ -6,12 +6,11 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-
-const defaultTextColor = '#333333'
-const defaultFontSize = 11
-
 export const defaultTheme = {
     background: 'transparent',
+    fontFamily: 'sans-serif',
+    fontSize: 11,
+    textColor: '#333333',
     axis: {
         domain: {
             line: {
@@ -21,50 +20,38 @@ export const defaultTheme = {
         },
         ticks: {
             line: {
-                stroke: '#777',
+                stroke: '#777777',
                 strokeWidth: 1,
             },
-            text: {
-                fill: defaultTextColor,
-                fontSize: defaultFontSize,
-            },
+            text: {},
         },
         legend: {
             text: {
-                fill: defaultTextColor,
-                fontSize: defaultFontSize,
+                fontSize: 12,
             },
         },
     },
     grid: {
         line: {
-            stroke: '#ddd',
+            stroke: '#dddddd',
             strokeWidth: 1,
         },
     },
     legends: {
         text: {
-            fill: defaultTextColor,
-            fontSize: defaultFontSize,
+            fill: '#333333',
         },
     },
     labels: {
-        text: {
-            fill: defaultTextColor,
-            fontSize: defaultFontSize,
-        },
+        text: {},
     },
     markers: {
-        lineColor: '#000',
+        lineColor: '#000000',
         lineStrokeWidth: 1,
-        textColor: defaultTextColor,
-        fontSize: defaultFontSize,
+        text: {},
     },
     dots: {
-        text: {
-            fill: defaultTextColor,
-            fontSize: defaultFontSize,
-        },
+        text: {},
     },
     tooltip: {
         container: {
@@ -80,9 +67,45 @@ export const defaultTheme = {
             display: 'flex',
             alignItems: 'center',
         },
+        chip: {
+            marginRight: 7,
+        },
         table: {},
         tableCell: {
             padding: '3px 5px',
+        },
+    },
+    crosshair: {
+        line: {
+            stroke: '#000000',
+            strokeWidth: 1,
+            strokeOpacity: 0.75,
+            strokeDasharray: '6 6',
+        },
+    },
+    annotations: {
+        text: {
+            fontSize: 13,
+            outlineWidth: 2,
+            outlineColor: '#ffffff',
+        },
+        link: {
+            stroke: '#000000',
+            strokeWidth: 1,
+            outlineWidth: 2,
+            outlineColor: '#ffffff',
+        },
+        outline: {
+            fill: 'none',
+            stroke: '#000000',
+            strokeWidth: 2,
+            outlineWidth: 2,
+            outlineColor: '#ffffff',
+        },
+        symbol: {
+            fill: '#000000',
+            outlineWidth: 2,
+            outlineColor: '#ffffff',
         },
     },
 }

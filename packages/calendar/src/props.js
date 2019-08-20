@@ -8,18 +8,12 @@
  */
 import PropTypes from 'prop-types'
 import { timeFormat } from 'd3-time-format'
-import { noop } from '@nivo/core'
+import { noop, boxAlignments } from '@nivo/core'
 import { LegendPropShape } from '@nivo/legends'
-import { DIRECTION_HORIZONTAL, DIRECTION_VERTICAL } from './constants'
 
 const monthLabelFormat = timeFormat('%b')
 
-/**
- * Calendar components propTypes.
- *
- * @type {object}
- */
-export const CalendarPropTypes = {
+const commonPropTypes = {
     from: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]).isRequired,
     to: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]).isRequired,
     data: PropTypes.arrayOf(
@@ -29,31 +23,36 @@ export const CalendarPropTypes = {
         })
     ).isRequired,
 
-    domain: PropTypes.oneOfType([PropTypes.oneOf(['auto']), PropTypes.arrayOf(PropTypes.number)])
-        .isRequired,
+    align: PropTypes.oneOf(boxAlignments).isRequired,
+    originX: PropTypes.number.isRequired,
+    originY: PropTypes.number.isRequired,
+    calendarWidth: PropTypes.number.isRequired,
+    calendarHeight: PropTypes.number.isRequired,
+
+    minValue: PropTypes.oneOfType([PropTypes.oneOf(['auto']), PropTypes.number]).isRequired,
+    maxValue: PropTypes.oneOfType([PropTypes.oneOf(['auto']), PropTypes.number]).isRequired,
+
     colors: PropTypes.arrayOf(PropTypes.string).isRequired,
     colorScale: PropTypes.func.isRequired,
 
-    direction: PropTypes.oneOf([DIRECTION_HORIZONTAL, DIRECTION_VERTICAL]),
+    direction: PropTypes.oneOf(['horizontal', 'vertical']),
     emptyColor: PropTypes.string.isRequired,
 
-    // years
     yearLegend: PropTypes.func.isRequired,
     yearSpacing: PropTypes.number.isRequired,
+    yearLegendPosition: PropTypes.oneOf(['before', 'after']).isRequired,
     yearLegendOffset: PropTypes.number.isRequired,
 
-    // months
-    monthLegend: PropTypes.func.isRequired,
     monthBorderWidth: PropTypes.number.isRequired,
     monthBorderColor: PropTypes.string.isRequired,
+    monthLegend: PropTypes.func.isRequired,
+    monthLegendPosition: PropTypes.oneOf(['before', 'after']).isRequired,
     monthLegendOffset: PropTypes.number.isRequired,
 
-    // days
     daySpacing: PropTypes.number.isRequired,
     dayBorderWidth: PropTypes.number.isRequired,
     dayBorderColor: PropTypes.string.isRequired,
 
-    // interactivity
     isInteractive: PropTypes.bool,
     onClick: PropTypes.func.isRequired,
     tooltipFormat: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
@@ -67,37 +66,49 @@ export const CalendarPropTypes = {
     ).isRequired,
 }
 
-/**
- * Calendar components defaultProps.
- *
- * @type {object}
- */
-export const CalendarDefaultProps = {
-    domain: 'auto',
+export const CalendarPropTypes = commonPropTypes
+
+export const CalendarCanvasPropTypes = {
+    ...commonPropTypes,
+    pixelRatio: PropTypes.number.isRequired,
+}
+
+const commonDefaultProps = {
     colors: ['#61cdbb', '#97e3d5', '#e8c1a0', '#f47560'],
 
-    direction: DIRECTION_HORIZONTAL,
+    align: 'center',
+    direction: 'horizontal',
     emptyColor: '#fff',
 
-    // years
-    yearLegend: year => year,
+    minValue: 0,
+    maxValue: 'auto',
+
     yearSpacing: 30,
+    yearLegend: year => year,
+    yearLegendPosition: 'before',
     yearLegendOffset: 10,
 
-    // months
-    monthLegend: (year, month, date) => monthLabelFormat(date),
     monthBorderWidth: 2,
     monthBorderColor: '#000',
-    monthLegendOffset: 6,
+    monthLegend: (year, month, date) => monthLabelFormat(date),
+    monthLegendPosition: 'before',
+    monthLegendOffset: 10,
 
-    // days
+    weekdayLegend: d => d,
     daySpacing: 0,
     dayBorderWidth: 1,
     dayBorderColor: '#000',
 
-    // interactivity
     isInteractive: true,
     onClick: noop,
 
     legends: [],
+}
+
+export const CalendarDefaultProps = commonDefaultProps
+
+export const CalendarCanvasDefaultProps = {
+    ...commonDefaultProps,
+    pixelRatio:
+        global.window && global.window.devicePixelRatio ? global.window.devicePixelRatio : 1,
 }

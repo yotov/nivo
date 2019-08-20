@@ -33,12 +33,12 @@ const zeroPadding = {
 }
 
 export const computeDimensions = ({
-    itemCount,
-    itemWidth,
-    itemHeight,
     direction,
     itemsSpacing,
     padding: _padding,
+    itemCount,
+    itemWidth,
+    itemHeight,
 }) => {
     let padding
     if (isNumber(_padding)) {
@@ -146,7 +146,7 @@ export const computeItemLayout = ({
             symbolY = (height - symbolSize) / 2
 
             labelY = height / 2
-            labelAlignment = 'middle'
+            labelAlignment = 'central'
             if (justify === true) {
                 labelX = width
                 labelAnchor = 'end'
@@ -161,7 +161,7 @@ export const computeItemLayout = ({
             symbolY = (height - symbolSize) / 2
 
             labelY = height / 2
-            labelAlignment = 'middle'
+            labelAlignment = 'central'
             if (justify === true) {
                 labelX = 0
                 labelAnchor = 'start'
@@ -180,10 +180,10 @@ export const computeItemLayout = ({
             labelAnchor = 'middle'
             if (justify === true) {
                 labelY = height
-                labelAlignment = 'baseline'
+                labelAlignment = 'alphabetic'
             } else {
                 labelY = symbolSize + symbolSpacing
-                labelAlignment = 'hanging'
+                labelAlignment = 'text-before-edge'
             }
             break
 
@@ -195,10 +195,10 @@ export const computeItemLayout = ({
             labelAnchor = 'middle'
             if (justify === true) {
                 labelY = 0
-                labelAlignment = 'hanging'
+                labelAlignment = 'text-before-edge'
             } else {
                 labelY = height - symbolSize - symbolSpacing
-                labelAlignment = 'baseline'
+                labelAlignment = 'alphabetic'
             }
             break
     }

@@ -8,12 +8,6 @@
  */
 import PropTypes from 'prop-types'
 
-export const scalePropType = PropTypes.shape({
-    type: PropTypes.string.isRequired,
-    domain: PropTypes.array.isRequired,
-    range: PropTypes.array.isRequired,
-})
-
 export const marginPropType = PropTypes.shape({
     top: PropTypes.number,
     right: PropTypes.number,
@@ -27,7 +21,7 @@ export const motionPropTypes = {
     motionDamping: PropTypes.number.isRequired,
 }
 
-export const blendModePropType = PropTypes.oneOf([
+export const blendModes = [
     'normal',
     'multiply',
     'screen',
@@ -44,7 +38,9 @@ export const blendModePropType = PropTypes.oneOf([
     'saturation',
     'color',
     'luminosity',
-])
+]
+
+export const blendModePropType = PropTypes.oneOf(blendModes)
 
 export * from './colors'
 export * from './curve'

@@ -6,28 +6,22 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-import React from 'react'
+import React, { memo } from 'react'
 import PropTypes from 'prop-types'
-import pure from 'recompose/pure'
 import CartesianMarkersItem from './CartesianMarkersItem'
 
-const CartesianMarkers = ({ markers, width, height, xScale, yScale, theme }) => {
+const CartesianMarkers = ({ markers, width, height, xScale, yScale }) => {
     if (!markers || markers.length === 0) return null
 
-    return (
-        <g>
-            {markers.map((marker, i) => (
-                <CartesianMarkersItem
-                    key={i}
-                    {...marker}
-                    width={width}
-                    height={height}
-                    scale={marker.axis === 'y' ? yScale : xScale}
-                    theme={theme}
-                />
-            ))}
-        </g>
-    )
+    return markers.map((marker, i) => (
+        <CartesianMarkersItem
+            key={i}
+            {...marker}
+            width={width}
+            height={height}
+            scale={marker.axis === 'y' ? yScale : xScale}
+        />
+    ))
 }
 
 CartesianMarkers.propTypes = {
@@ -36,15 +30,6 @@ CartesianMarkers.propTypes = {
 
     xScale: PropTypes.func.isRequired,
     yScale: PropTypes.func.isRequired,
-
-    theme: PropTypes.shape({
-        markers: PropTypes.shape({
-            lineColor: PropTypes.string.isRequired,
-            lineStrokeWidth: PropTypes.number.isRequired,
-            textColor: PropTypes.string.isRequired,
-            fontSize: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
-        }).isRequired,
-    }).isRequired,
 
     markers: PropTypes.arrayOf(
         PropTypes.shape({
@@ -56,4 +41,4 @@ CartesianMarkers.propTypes = {
     ),
 }
 
-export default pure(CartesianMarkers)
+export default memo(CartesianMarkers)

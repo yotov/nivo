@@ -77,6 +77,7 @@ declare module '@nivo/legends' {
         symbolSize?: number
         symbolSpacing?: number
         symbolShape?: LegendSymbolShape | any
+        symbolBorderColor?: string
         textColor?: string
 
         onClick?: LegendMouseHandler
@@ -85,4 +86,11 @@ declare module '@nivo/legends' {
 
         effects?: LegendEffect[]
     }
+
+    export interface QuantileLegendProps {
+        scale: any
+        domain?: number[]
+    }
+
+    export type QuantileLegendSvg = React.FunctionComponent<QuantileLegendProps>
 }

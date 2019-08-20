@@ -6,7 +6,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-import React from 'react'
+import React, { memo } from 'react'
 import PropTypes from 'prop-types'
 import { TransitionMotion, spring } from 'react-motion'
 import { motionPropTypes, getLabelGenerator, dotsThemePropType, DotsItem } from '@nivo/core'
@@ -40,6 +40,7 @@ const LinePoints = ({
                         key={point.id}
                         x={point.position.x}
                         y={point.position.y}
+                        datum={point.datum}
                         symbol={symbol}
                         size={size}
                         color={point.color}
@@ -80,6 +81,7 @@ const LinePoints = ({
                             {...style}
                             symbol={symbol}
                             color={point.color}
+                            datum={point.datum}
                             borderWidth={borderWidth}
                             borderColor={borderColor(point)}
                             label={getLabel(point.data)}
@@ -141,4 +143,5 @@ LinePoints.defaultProps = {
     label: 'y',
 }
 
-export default LinePoints
+
+export default memo(LinePoints)

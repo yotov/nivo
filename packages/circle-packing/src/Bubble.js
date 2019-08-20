@@ -10,8 +10,8 @@
 import React from 'react'
 import { TransitionMotion, spring } from 'react-motion'
 import pick from 'lodash/pick'
-import { colorMotionSpring, getInterpolatedColor } from '@nivo/core'
 import { Container, SvgWrapper } from '@nivo/core'
+import { interpolateColor, getInterpolatedColor } from '@nivo/colors'
 import enhance from './enhance'
 import { nodeWillEnter, nodeWillLeave } from './motion'
 import { getNodeHandlers } from './interactivity'
@@ -20,26 +20,21 @@ const Bubble = ({
     nodes,
     nodeComponent,
 
-    // dimensions
     margin,
     outerWidth,
     outerHeight,
 
-    // styling
     theme,
     borderWidth,
     getBorderColor,
     defs,
 
-    // labels
     getLabelTextColor,
 
-    // motion
     animate,
     motionStiffness,
     motionDamping,
 
-    // interactivity
     isInteractive,
     onClick,
     tooltipFormat,
@@ -66,7 +61,13 @@ const Bubble = ({
         })
 
     return (
-        <Container isInteractive={isInteractive} theme={theme}>
+        <Container
+            isInteractive={isInteractive}
+            theme={theme}
+            animate={animate}
+            motionStiffness={motionStiffness}
+            motionDamping={motionDamping}
+        >
             {({ showTooltip, hideTooltip }) => (
                 <SvgWrapper
                     width={outerWidth}
@@ -107,7 +108,7 @@ const Bubble = ({
                                     x: spring(node.x, springConfig),
                                     y: spring(node.y, springConfig),
                                     opacity: spring(1, springConfig),
-                                    ...colorMotionSpring(node.color, springConfig),
+                                    ...interpolateColor(node.color, springConfig),
                                 },
                             }))}
                         >

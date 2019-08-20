@@ -73,23 +73,25 @@ class TreeMapCanvas extends Component {
         if (enableLabel) {
             this.ctx.textAlign = 'center'
             this.ctx.textBaseline = 'middle'
-            this.ctx.font = `${theme.labels.text.fontSize}px sans-serif`
+            this.ctx.font = `${theme.labels.text.fontSize}px ${theme.labels.text.fontFamily}`
 
             // draw labels on top
-            nodes.filter(({ label }) => label !== undefined).forEach(node => {
-                const labelTextColor = getLabelTextColor(node)
+            nodes
+                .filter(({ label }) => label !== undefined)
+                .forEach(node => {
+                    const labelTextColor = getLabelTextColor(node)
 
-                const rotate = orientLabel && node.height > node.width
+                    const rotate = orientLabel && node.height > node.width
 
-                this.ctx.save()
-                this.ctx.translate(node.x + node.width / 2, node.y + node.height / 2)
-                this.ctx.rotate(degreesToRadians(rotate ? -90 : 0))
+                    this.ctx.save()
+                    this.ctx.translate(node.x + node.width / 2, node.y + node.height / 2)
+                    this.ctx.rotate(degreesToRadians(rotate ? -90 : 0))
 
-                this.ctx.fillStyle = labelTextColor
-                this.ctx.fillText(node.label, 0, 0)
+                    this.ctx.fillStyle = labelTextColor
+                    this.ctx.fillText(node.label, 0, 0)
 
-                this.ctx.restore()
-            })
+                    this.ctx.restore()
+                })
         }
     }
 
@@ -128,7 +130,7 @@ class TreeMapCanvas extends Component {
         const { outerWidth, outerHeight, pixelRatio, isInteractive, theme } = this.props
 
         return (
-            <Container isInteractive={isInteractive} theme={theme}>
+            <Container isInteractive={isInteractive} theme={theme} animate={false}>
                 {({ showTooltip, hideTooltip }) => (
                     <canvas
                         ref={surface => {

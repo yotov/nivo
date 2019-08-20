@@ -1,6 +1,31 @@
-import { CSSProperties } from 'react'
+import * as React from 'react'
+import { number } from 'prop-types'
 
 declare module '@nivo/core' {
+    export interface Dimensions {
+        height: number
+        width: number
+    }
+
+    export type Box = Partial<{
+        bottom: number
+        left: number
+        right: number
+        top: number
+    }>
+    export type BoxAlign =
+        | 'center'
+        | 'top-left'
+        | 'top'
+        | 'top-right'
+        | 'right'
+        | 'bottom-right'
+        | 'bottom'
+        | 'bottom-left'
+        | 'left'
+    export const boxAlignments: BoxAlign[]
+    export function alignBox(box: Box, container: Box, alignment: BoxAlign): [number, number]
+
     export type GetColor<T> = (datum: T) => string
     export type Colors = string[] | string
     export interface ColorProps<T> {
@@ -12,24 +37,24 @@ declare module '@nivo/core' {
         background: string
         axis: Partial<{
             domain: Partial<{
-                line: Partial<CSSProperties>
+                line: Partial<React.CSSProperties>
             }>
             ticks: Partial<{
-                line: Partial<CSSProperties>
-                text: Partial<CSSProperties>
+                line: Partial<React.CSSProperties>
+                text: Partial<React.CSSProperties>
             }>
             legend: Partial<{
-                text: Partial<CSSProperties>
+                text: Partial<React.CSSProperties>
             }>
         }>
         grid: Partial<{
-            line: Partial<CSSProperties>
+            line: Partial<React.CSSProperties>
         }>
         legends: Partial<{
-            text: Partial<CSSProperties>
+            text: Partial<React.CSSProperties>
         }>
         labels: Partial<{
-            text: Partial<CSSProperties>
+            text: Partial<React.CSSProperties>
         }>
         markers: Partial<{
             lineColor: string
@@ -38,26 +63,15 @@ declare module '@nivo/core' {
             fontSize: string | 0
         }>
         dots: Partial<{
-            text: Partial<CSSProperties>
+            text: Partial<React.CSSProperties>
         }>
         tooltip: Partial<{
-            container: Partial<CSSProperties>
-            basic: Partial<CSSProperties>
-            table: Partial<CSSProperties>
-            tableCell: Partial<CSSProperties>
+            container: Partial<React.CSSProperties>
+            basic: Partial<React.CSSProperties>
+            chip: Partial<React.CSSProperties>
+            table: Partial<React.CSSProperties>
+            tableCell: Partial<React.CSSProperties>
         }>
-    }>
-
-    export interface Dimensions {
-        height: number
-        width: number
-    }
-
-    export type Box = Partial<{
-        bottom: number
-        left: number
-        right: number
-        top: number
     }>
 
     export type MotionProps = Partial<{
@@ -79,7 +93,41 @@ declare module '@nivo/core' {
         axis: 'x' | 'y'
         value: string | number | Date
         legend?: string
-        lineStyle?: Partial<CSSProperties>
-        textStyle?: Partial<CSSProperties>
+        lineStyle?: Partial<React.CSSProperties>
+        textStyle?: Partial<React.CSSProperties>
     }
+
+    export type CssMixBlendMode =
+        | 'normal'
+        | 'multiply'
+        | 'screen'
+        | 'overlay'
+        | 'darken'
+        | 'lighten'
+        | 'color-dodge'
+        | 'color-burn'
+        | 'hard-light'
+        | 'soft-light'
+        | 'difference'
+        | 'exclusion'
+        | 'hue'
+        | 'saturation'
+        | 'color'
+        | 'luminosity'
+
+    export type StackOrder = 'ascending' | 'descending' | 'insideOut' | 'none' | 'reverse'
+
+    export type StackOffset = 'expand' | 'diverging' | 'none' | 'silhouette' | 'wiggle'
+
+    export type AreaCurve =
+        | 'basis'
+        | 'cardinal'
+        | 'catmullRom'
+        | 'linear'
+        | 'monotoneX'
+        | 'monotoneY'
+        | 'natural'
+        | 'step'
+        | 'stepAfter'
+        | 'stepBefore'
 }

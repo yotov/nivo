@@ -6,248 +6,197 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-import React, { Component } from 'react'
-import { TransitionMotion, spring } from 'react-motion'
-import setDisplayName from 'recompose/setDisplayName'
-import { Container, SvgWrapper, Grid, CartesianMarkers } from '@nivo/core'
-import { Axes } from '@nivo/axes'
+import React, { memo, Fragment, useMemo } from 'react'
+import {
+    SvgWrapper,
+    withContainer,
+    useDimensions,
+    useTheme,
+    useMotionConfig,
+    CartesianMarkers,
+} from '@nivo/core'
+import { Axes, Grid } from '@nivo/axes'
 import { BoxLegendSvg } from '@nivo/legends'
-import { Mesh } from '@nivo/voronoi'
-import { enhanceSvg } from './enhance'
-import { ScatterPlotPropTypes } from './props'
-import ScatterPlotItem from './ScatterPlotItem'
-import ScatterPlotTooltip from './ScatterPlotTooltip'
+import { useScatterPlot } from './hooks'
+import { ScatterPlotPropTypes, ScatterPlotDefaultProps } from './props'
+import AnimatedNodes from './AnimatedNodes'
+import StaticNodes from './StaticNodes'
+import Mesh from './Mesh'
 
-class ScatterPlot extends Component {
-    static propTypes = ScatterPlotPropTypes
+const ScatterPlot = props => {
+    const {
+        data,
+        xScale: xScaleSpec,
+        xFormat,
+        yScale: yScaleSpec,
+        yFormat,
 
-    showTooltip = (showTooltip, point, event) => {
-        const { tooltipFormat, tooltip, theme, getColor } = this.props
+        width,
+        height,
+        margin: partialMargin,
 
-        showTooltip(
-            <ScatterPlotTooltip
-                point={point}
-                color={getColor(point.data)}
-                format={tooltipFormat}
-                tooltip={tooltip}
-                theme={theme}
-            />,
-            event
-        )
-    }
+        layers,
 
-    handleMouseEnter = showTooltip => (point, event) => {
-        const { isInteractive, onMouseEnter } = this.props
+        colors,
+        blendMode,
 
-        if (!isInteractive) return
+        nodeSize,
+        renderNode,
 
-        onMouseEnter && onMouseEnter(point, event)
-        this.showTooltip(showTooltip, point, event)
-    }
+        enableGridX,
+        enableGridY,
+        axisTop,
+        axisRight,
+        axisBottom,
+        axisLeft,
 
-    handleMouseMove = showTooltip => (point, event) => {
-        const { isInteractive, onMouseMove } = this.props
+        isInteractive,
+        useMesh,
+        debugMesh,
+        onMouseEnter,
+        onMouseMove,
+        onMouseLeave,
+        onClick,
+        tooltip,
 
-        if (!isInteractive) return
+        markers,
 
-        onMouseMove && onMouseMove(point, event)
-        this.showTooltip(showTooltip, point, event)
-    }
+        legends,
+    } = props
 
-    handleMouseLeave = hideTooltip => (point, event) => {
-        const { isInteractive, onMouseLeave } = this.props
+    const { margin, innerWidth, innerHeight, outerWidth, outerHeight } = useDimensions(
+        width,
+        height,
+        partialMargin
+    )
 
-        if (!isInteractive) return
+    const theme = useTheme()
+    const { animate } = useMotionConfig()
 
-        onMouseLeave && onMouseLeave(point, event)
-        hideTooltip()
-    }
+    const { xScale, yScale, nodes, legendData } = useScatterPlot({
+        data,
+        xScaleSpec,
+        xFormat,
+        yScaleSpec,
+        yFormat,
+        width: innerWidth,
+        height: innerHeight,
+        nodeSize,
+        colors,
+    })
 
-    handleClick = (point, event) => {
-        const { isInteractive, onClick } = this.props
-        if (!isInteractive || onClick === undefined) return
-
-        onClick(point.data, event)
-    }
-
-    render() {
-        const {
-            data,
-
-            computedData,
-            points,
-
+    const customLayerProps = useMemo(
+        () => ({
+            ...props,
+            xScale,
+            yScale,
+            nodes,
             margin,
-            width,
-            height,
+            innerWidth,
+            innerHeight,
             outerWidth,
             outerHeight,
+        }),
+        [xScale, yScale, nodes, margin, innerWidth, innerHeight, outerWidth, outerHeight]
+    )
 
-            axisTop,
-            axisRight,
-            axisBottom,
-            axisLeft,
+    const Nodes = animate ? AnimatedNodes : StaticNodes
 
-            enableGridX,
-            enableGridY,
-
-            markers,
-
-            theme,
-            getSymbolSize,
-            getColor,
-
-            animate,
-            motionStiffness,
-            motionDamping,
-
+    const layerById = {
+        grid: (
+            <Grid
+                key="grid"
+                width={innerWidth}
+                height={innerHeight}
+                xScale={enableGridX ? xScale : null}
+                yScale={enableGridY ? yScale : null}
+            />
+        ),
+        axes: (
+            <Axes
+                key="axes"
+                xScale={xScale}
+                yScale={yScale}
+                width={innerWidth}
+                height={innerHeight}
+                top={axisTop}
+                right={axisRight}
+                bottom={axisBottom}
+                left={axisLeft}
+            />
+        ),
+        nodes: React.createElement(Nodes, {
+            key: 'nodes',
+            nodes,
+            renderNode,
             isInteractive,
-            useMesh,
-            debugMesh,
+            onMouseEnter,
+            onMouseMove,
+            onMouseLeave,
+            onClick,
+            tooltip,
+            blendMode,
+        }),
+        markers: (
+            <CartesianMarkers
+                key="markers"
+                markers={markers}
+                width={innerWidth}
+                height={innerHeight}
+                xScale={xScale}
+                yScale={yScale}
+            />
+        ),
+        mesh: null,
+        legends: legends.map((legend, i) => (
+            <BoxLegendSvg
+                key={i}
+                {...legend}
+                containerWidth={innerWidth}
+                containerHeight={innerHeight}
+                data={legendData}
+                theme={theme}
+            />
+        )),
+    }
 
-            legends,
-        } = this.props
-        const { xScale, yScale } = computedData
-
-        const motionProps = {
-            animate,
-            motionDamping,
-            motionStiffness,
-        }
-        const springConfig = {
-            damping: motionDamping,
-            stiffness: motionStiffness,
-        }
-
-        const legendData = data.map(serie => ({
-            id: serie.id,
-            label: serie.id,
-            color: getColor({ serie }),
-        }))
-
-        return (
-            <Container isInteractive={isInteractive} theme={theme}>
-                {({ showTooltip, hideTooltip }) => {
-                    const onMouseEnter = this.handleMouseEnter(showTooltip)
-                    const onMouseMove = this.handleMouseMove(showTooltip)
-                    const onMouseLeave = this.handleMouseLeave(hideTooltip)
-
-                    return (
-                        <SvgWrapper
-                            width={outerWidth}
-                            height={outerHeight}
-                            margin={margin}
-                            theme={theme}
-                        >
-                            <Grid
-                                theme={theme}
-                                width={width}
-                                height={height}
-                                xScale={enableGridX ? xScale : null}
-                                yScale={enableGridY ? yScale : null}
-                                {...motionProps}
-                            />
-                            <Axes
-                                xScale={xScale}
-                                yScale={yScale}
-                                width={width}
-                                height={height}
-                                theme={theme}
-                                top={axisTop}
-                                right={axisRight}
-                                bottom={axisBottom}
-                                left={axisLeft}
-                                {...motionProps}
-                            />
-                            {!animate &&
-                                points.map(point => (
-                                    <ScatterPlotItem
-                                        key={point.id}
-                                        point={point}
-                                        x={point.x}
-                                        y={point.y}
-                                        size={getSymbolSize(point.data)}
-                                        color={getColor(point.data)}
-                                        data={point.data}
-                                        onMouseEnter={onMouseEnter}
-                                        onMouseMove={onMouseMove}
-                                        onMouseLeave={onMouseLeave}
-                                        onClick={this.handleClick}
-                                        theme={theme}
-                                    />
-                                ))}
-                            {animate === true && (
-                                <TransitionMotion
-                                    styles={points.map(point => ({
-                                        key: point.id,
-                                        data: point,
-                                        style: {
-                                            x: spring(point.x, springConfig),
-                                            y: spring(point.y, springConfig),
-                                            size: spring(getSymbolSize(point.data), springConfig),
-                                        },
-                                    }))}
-                                >
-                                    {interpolatedStyles => (
-                                        <g>
-                                            {interpolatedStyles.map(
-                                                ({ key, style, data: point }) => (
-                                                    <ScatterPlotItem
-                                                        key={key}
-                                                        point={point}
-                                                        x={style.x}
-                                                        y={style.y}
-                                                        size={style.size}
-                                                        color={getColor(point.data)}
-                                                        onMouseEnter={onMouseEnter}
-                                                        onMouseMove={onMouseMove}
-                                                        onMouseLeave={onMouseLeave}
-                                                        onClick={this.handleClick}
-                                                        theme={theme}
-                                                    />
-                                                )
-                                            )}
-                                        </g>
-                                    )}
-                                </TransitionMotion>
-                            )}
-                            <CartesianMarkers
-                                markers={markers}
-                                width={width}
-                                height={height}
-                                xScale={xScale}
-                                yScale={yScale}
-                                theme={theme}
-                            />
-                            {isInteractive &&
-                                useMesh && (
-                                    <Mesh
-                                        points={points}
-                                        width={width}
-                                        height={height}
-                                        onMouseEnter={onMouseEnter}
-                                        onMouseMove={onMouseMove}
-                                        onMouseLeave={onMouseLeave}
-                                        onClick={this.handleClick}
-                                        debug={debugMesh}
-                                    />
-                                )}
-                            {legends.map((legend, i) => (
-                                <BoxLegendSvg
-                                    key={i}
-                                    {...legend}
-                                    containerWidth={width}
-                                    containerHeight={height}
-                                    data={legendData}
-                                    theme={theme}
-                                />
-                            ))}
-                        </SvgWrapper>
-                    )
-                }}
-            </Container>
+    if (isInteractive === true && useMesh === true) {
+        layerById.mesh = (
+            <Mesh
+                key="mesh"
+                nodes={nodes}
+                width={innerWidth}
+                height={innerHeight}
+                onMouseEnter={onMouseEnter}
+                onMouseMove={onMouseMove}
+                onMouseLeave={onMouseLeave}
+                onClick={onClick}
+                tooltip={tooltip}
+                debug={debugMesh}
+            />
         )
     }
+
+    return (
+        <SvgWrapper width={outerWidth} height={outerHeight} margin={margin} theme={theme}>
+            {layers.map((layer, i) => {
+                if (layerById[layer] !== undefined) {
+                    return layerById[layer]
+                }
+
+                if (typeof layer === 'function') {
+                    return (
+                        <Fragment key={i}>{React.createElement(layer, customLayerProps)}</Fragment>
+                    )
+                }
+
+                throw new Error(`Unknown layer (${layer})`)
+            })}
+        </SvgWrapper>
+    )
 }
 
-export default setDisplayName('ScatterPlot')(enhanceSvg(ScatterPlot))
+ScatterPlot.propTypes = ScatterPlotPropTypes
+ScatterPlot.defaultProps = ScatterPlotDefaultProps
+
+export default memo(withContainer(ScatterPlot))

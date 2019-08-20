@@ -11,7 +11,7 @@ import PropTypes from 'prop-types'
 import compose from 'recompose/compose'
 import withPropsOnChange from 'recompose/withPropsOnChange'
 import pure from 'recompose/pure'
-import { BasicTooltip } from '@nivo/core'
+import { BasicTooltip } from '@nivo/tooltip'
 
 const BarItem = ({
     data,
@@ -68,7 +68,7 @@ const BarItem = ({
                     x={width / 2}
                     y={height / 2}
                     textAnchor="middle"
-                    alignmentBaseline="central"
+                    dominantBaseline="central"
                     style={{
                         ...theme.labels.text,
                         pointerEvents: 'none',
@@ -98,13 +98,14 @@ BarItem.propTypes = {
     borderWidth: PropTypes.number.isRequired,
     borderColor: PropTypes.string.isRequired,
 
-    label: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    label: PropTypes.node.isRequired,
     shouldRenderLabel: PropTypes.bool.isRequired,
     labelColor: PropTypes.string.isRequired,
 
-    tooltipFormat: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
     showTooltip: PropTypes.func.isRequired,
     hideTooltip: PropTypes.func.isRequired,
+    getTooltipLabel: PropTypes.func.isRequired,
+    tooltipFormat: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
     onClick: PropTypes.func,
     onMouseEnter: PropTypes.func,
     onMouseLeave: PropTypes.func,
@@ -120,11 +121,11 @@ const enhance = compose(
         onClick: event => onClick({ color, ...data }, event),
     })),
     withPropsOnChange(
-        ['data', 'color', 'theme', 'tooltip', 'tooltipFormat'],
-        ({ data, color, theme, tooltip, tooltipFormat }) => ({
+        ['data', 'color', 'theme', 'tooltip', 'getTooltipLabel', 'tooltipFormat'],
+        ({ data, color, theme, tooltip, getTooltipLabel, tooltipFormat }) => ({
             tooltip: (
                 <BasicTooltip
-                    id={`${data.id} - ${data.indexValue}`}
+                    id={getTooltipLabel(data)}
                     value={data.value}
                     enableChip={true}
                     color={color}
@@ -132,7 +133,7 @@ const enhance = compose(
                     format={tooltipFormat}
                     renderContent={
                         typeof tooltip === 'function'
-                            ? tooltip.bind(null, { color, ...data })
+                            ? tooltip.bind(null, { color, theme, ...data })
                             : null
                     }
                 />

@@ -1,6 +1,6 @@
 {
   "name": "@nivo/voronoi",
-  "version": "0.50.0",
+  "version": "0.59.3",
   "license": "MIT",
   "author": {
     "name": "Raphaël Benitte",
@@ -14,22 +14,24 @@
     "charts",
     "voronoi"
   ],
-  "main": "./index.js",
+  "main": "./dist/nivo-voronoi.cjs.js",
+  "module": "./dist/nivo-voronoi.esm.js",
+  "typings": "./index.d.ts",
   "files": [
     "README.md",
-    "index.js",
-    "cjs/",
-    "umd/"
+    "LICENSE.md",
+    "dist/",
+    "index.d.ts"
   ],
   "dependencies": {
-    "@nivo/core": "0.50.0",
-    "d3-delaunay": "^4.1.5",
-    "d3-scale": "^2.1.2",
-    "recompose": "^0.26.0"
+    "@nivo/core": "0.59.1",
+    "d3-delaunay": "^5.1.1",
+    "d3-scale": "^3.0.0",
+    "recompose": "^0.30.0"
   },
   "peerDependencies": {
-    "prop-types": "^15.5.10",
-    "react": ">= 16.2.0 < 17.0.0"
+    "prop-types": ">= 15.5.10 < 16.0.0",
+    "react": ">= 16.8.4 < 17.0.0"
   },
   "publishConfig": {
     "access": "public"

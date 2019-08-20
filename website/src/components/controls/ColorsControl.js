@@ -9,9 +9,18 @@
 import React, { PureComponent } from 'react'
 import range from 'lodash/range'
 import PropTypes from 'prop-types'
-import { colorSchemeIds, colorSchemes, colorInterpolatorIds, colorInterpolators } from '@nivo/core'
-import Select from 'react-select'
+import {
+    colorSchemeIds,
+    colorSchemes,
+    colorInterpolatorIds,
+    colorInterpolators,
+} from '@nivo/colors'
+import { components } from 'react-select'
 import ColorsControlItem from './ColorsControlItem'
+import Control from './Control'
+import PropertyHeader from './PropertyHeader'
+import { Help } from './styled'
+import Select from './Select'
 
 const colors = colorSchemeIds.map(id => ({
     id,
@@ -23,19 +32,37 @@ const sequentialColors = colorInterpolatorIds.map(id => ({
     colors: range(0, 1, 0.05).map(t => colorInterpolators[id](t)),
 }))
 
+const SingleValue = props => {
+    return (
+        <components.SingleValue {...props}>
+            <ColorsControlItem id={props.data.label} colors={props.data.colors} />
+        </components.SingleValue>
+    )
+}
+
+const Option = props => {
+    return (
+        <components.Option {...props}>
+            <ColorsControlItem id={props.value} colors={props.data.colors} />
+        </components.Option>
+    )
+}
+
 export default class ColorsControl extends PureComponent {
     static propTypes = {
-        label: PropTypes.string.isRequired,
+        id: PropTypes.string.isRequired,
+        property: PropTypes.object.isRequired,
+        flavors: PropTypes.arrayOf(PropTypes.oneOf(['svg', 'html', 'canvas', 'api'])).isRequired,
+        currentFlavor: PropTypes.oneOf(['svg', 'html', 'canvas', 'api']).isRequired,
         onChange: PropTypes.func.isRequired,
         value: PropTypes.string.isRequired,
-        includeSequential: PropTypes.bool.isRequired,
-        help: PropTypes.node.isRequired,
+        options: PropTypes.shape({
+            includeSequential: PropTypes.bool,
+        }).isRequired,
     }
 
     static defaultProps = {
-        label: 'colors',
-        help: 'Chart color range.',
-        includeSequential: false,
+        options: {},
     }
 
     handleColorsChange = value => {
@@ -43,55 +70,41 @@ export default class ColorsControl extends PureComponent {
         onChange(value.value)
     }
 
-    renderOption(option) {
-        return <ColorsControlItem id={option.value} colors={option.colors} />
-    }
-
-    renderValue(value) {
-        return (
-            <div className="colors_item colors_item-current">
-                <div className="colors_item_colors">
-                    {value.colors.map(color => (
-                        <span
-                            key={color}
-                            className="colors_item_colors_item"
-                            style={{ background: color }}
-                        />
-                    ))}
-                </div>
-            </div>
-        )
-    }
-
     render() {
-        const { label, value, includeSequential, help } = this.props
+        const { id, property, flavors, currentFlavor, value, includeSequential } = this.props
 
         let options = colors
         if (includeSequential === true) {
             options = options.concat(sequentialColors)
         }
+        options = options.map(({ id, colors }) => ({
+            label: id,
+            value: id,
+            colors,
+        }))
+        const selectedOption = options.find(o => o.value === value)
 
         return (
-            <div className="control control-colors">
-                <label className="control_label">
-                    {label}
-                    :&nbsp;
-                    <code className="code code-string">'{value}'</code>
-                </label>
+            <Control
+                id={id}
+                description={property.description}
+                flavors={flavors}
+                currentFlavor={currentFlavor}
+                supportedFlavors={property.flavors}
+            >
+                <PropertyHeader {...property} />
                 <Select
-                    options={options.map(({ id, colors }) => ({
-                        label: id,
-                        value: id,
-                        colors,
-                    }))}
-                    optionRenderer={this.renderOption}
-                    valueRenderer={this.renderValue}
+                    options={options}
                     onChange={this.handleColorsChange}
-                    value={value}
-                    clearable={false}
+                    value={selectedOption}
+                    isSearchable
+                    components={{
+                        SingleValue,
+                        Option,
+                    }}
                 />
-                <div className="control-help">{help}</div>
-            </div>
+                <Help>{property.help}</Help>
+            </Control>
         )
     }
 }

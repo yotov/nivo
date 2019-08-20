@@ -7,7 +7,7 @@
  * file that was distributed with this source code.
  */
 import React, { Component } from 'react'
-import range from 'lodash/range'
+import range from 'lodash.range'
 import setDisplayName from 'recompose/setDisplayName'
 import { isCursorInRect, getRelativeCursor, Container } from '@nivo/core'
 import { renderLegendToCanvas } from '@nivo/legends'
@@ -172,7 +172,7 @@ class WaffleCanvas extends Component {
         const { outerWidth, outerHeight, pixelRatio, isInteractive, theme } = this.props
 
         return (
-            <Container isInteractive={isInteractive} theme={theme}>
+            <Container isInteractive={isInteractive} theme={theme} animate={false}>
                 {({ showTooltip, hideTooltip }) => (
                     <canvas
                         ref={surface => {

@@ -10,25 +10,23 @@ import React, { Fragment } from 'react'
 import PropTypes from 'prop-types'
 import pure from 'recompose/pure'
 import { TransitionMotion, spring } from 'react-motion'
-import { colorMotionSpring, getInterpolatedColor, motionPropTypes } from '@nivo/core'
+import { motionPropTypes } from '@nivo/core'
+import { interpolateColor, getInterpolatedColor } from '@nivo/colors'
 import SankeyNodesItem from './SankeyNodesItem'
 
 const SankeyNodes = ({
     nodes,
 
-    // nodes
     nodeOpacity,
     nodeHoverOpacity,
     nodeHoverOthersOpacity,
     nodeBorderWidth,
     getNodeBorderColor,
 
-    // motion
     animate,
     motionDamping,
     motionStiffness,
 
-    // interactivity
     showTooltip,
     hideTooltip,
     setCurrentNode,
@@ -49,26 +47,28 @@ const SankeyNodes = ({
     if (!animate) {
         return (
             <Fragment>
-                {nodes.map(node => (
-                    <SankeyNodesItem
-                        key={node.id}
-                        node={node}
-                        x={node.x}
-                        y={node.y}
-                        width={node.width}
-                        height={node.height}
-                        color={node.color}
-                        opacity={getOpacity(node)}
-                        borderWidth={nodeBorderWidth}
-                        borderColor={getNodeBorderColor(node)}
-                        showTooltip={showTooltip}
-                        hideTooltip={hideTooltip}
-                        setCurrent={setCurrentNode}
-                        onClick={onClick}
-                        tooltip={tooltip}
-                        theme={theme}
-                    />
-                ))}
+                {nodes.map(node => {
+                    return (
+                        <SankeyNodesItem
+                            key={node.id}
+                            node={node}
+                            x={node.x}
+                            y={node.y}
+                            width={node.width}
+                            height={node.height}
+                            color={node.color}
+                            opacity={getOpacity(node)}
+                            borderWidth={nodeBorderWidth}
+                            borderColor={getNodeBorderColor(node)}
+                            showTooltip={showTooltip}
+                            hideTooltip={hideTooltip}
+                            setCurrent={setCurrentNode}
+                            onClick={onClick}
+                            tooltip={tooltip}
+                            theme={theme}
+                        />
+                    )
+                })}
             </Fragment>
         )
     }
@@ -90,7 +90,7 @@ const SankeyNodes = ({
                         width: spring(node.width, springProps),
                         height: spring(node.height, springProps),
                         opacity: spring(getOpacity(node), springProps),
-                        ...colorMotionSpring(node.color, springProps),
+                        ...interpolateColor(node.color, springProps),
                     },
                 }
             })}
@@ -139,7 +139,6 @@ SankeyNodes.propTypes = {
         })
     ).isRequired,
 
-    nodePaddingX: PropTypes.number.isRequired,
     nodeOpacity: PropTypes.number.isRequired,
     nodeHoverOpacity: PropTypes.number.isRequired,
     nodeHoverOthersOpacity: PropTypes.number.isRequired,
@@ -151,7 +150,6 @@ SankeyNodes.propTypes = {
 
     ...motionPropTypes,
 
-    // interactivity
     showTooltip: PropTypes.func.isRequired,
     hideTooltip: PropTypes.func.isRequired,
     setCurrentNode: PropTypes.func.isRequired,

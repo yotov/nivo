@@ -9,25 +9,16 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { TransitionMotion, spring } from 'react-motion'
-import { midAngle, getPolarLabelProps } from '@nivo/core'
-import { motionPropTypes } from '@nivo/core'
+import { midAngle, getPolarLabelProps, useTheme } from '@nivo/core'
+import { useMotionConfig } from '@nivo/core'
 
-const ChordLabels = ({
-    arcs,
-    radius,
-    rotation,
-    getLabel,
-    getColor,
-    theme,
+const ChordLabels = ({ arcs, radius, rotation, getColor }) => {
+    const theme = useTheme()
+    const { animate, springConfig } = useMotionConfig()
 
-    // motion
-    animate,
-    motionDamping,
-    motionStiffness,
-}) => {
     if (animate !== true) {
         return (
-            <g>
+            <>
                 {arcs.map(arc => {
                     const color = getColor(arc, theme)
                     const angle = midAngle(arc)
@@ -35,7 +26,7 @@ const ChordLabels = ({
 
                     return (
                         <text
-                            key={arc.key}
+                            key={arc.id}
                             transform={`translate(${textProps.x}, ${textProps.y}) rotate(${
                                 textProps.rotate
                             })`}
@@ -45,19 +36,14 @@ const ChordLabels = ({
                                 fill: color,
                             }}
                             textAnchor={textProps.align}
-                            alignmentBaseline={textProps.baseline}
+                            dominantBaseline={textProps.baseline}
                         >
-                            {getLabel(arc)}
+                            {arc.label}
                         </text>
                     )
                 })}
-            </g>
+            </>
         )
-    }
-
-    const springConfig = {
-        damping: motionDamping,
-        stiffness: motionStiffness,
     }
 
     return (
@@ -66,7 +52,7 @@ const ChordLabels = ({
                 const angle = midAngle(arc)
 
                 return {
-                    key: arc.key,
+                    key: arc.id,
                     data: arc,
                     style: {
                         angle: spring(angle, springConfig),
@@ -75,7 +61,7 @@ const ChordLabels = ({
             })}
         >
             {interpolatedStyles => (
-                <g>
+                <>
                     {interpolatedStyles.map(({ key, style, data: arc }) => {
                         const color = getColor(arc, theme)
                         const textProps = getPolarLabelProps(radius, style.angle, rotation)
@@ -92,13 +78,13 @@ const ChordLabels = ({
                                     fill: color,
                                 }}
                                 textAnchor={textProps.align}
-                                alignmentBaseline={textProps.baseline}
+                                dominantBaseline={textProps.baseline}
                             >
-                                {getLabel(arc)}
+                                {arc.label}
                             </text>
                         )
                     })}
-                </g>
+                </>
             )}
         </TransitionMotion>
     )
@@ -108,10 +94,7 @@ ChordLabels.propTypes = {
     arcs: PropTypes.array.isRequired,
     radius: PropTypes.number.isRequired,
     rotation: PropTypes.number.isRequired,
-    getLabel: PropTypes.func.isRequired,
     getColor: PropTypes.func.isRequired,
-    theme: PropTypes.object.isRequired,
-    ...motionPropTypes,
 }
 
 export default ChordLabels
