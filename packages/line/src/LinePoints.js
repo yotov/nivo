@@ -38,8 +38,8 @@ const LinePoints = ({
                 {points.map(point => (
                     <DotsItem
                         key={point.id}
-                        x={point.position.x}
-                        y={point.position.y}
+                        x={point.x}
+                        y={point.y}
                         datum={point.datum}
                         symbol={symbol}
                         size={size}
@@ -66,8 +66,8 @@ const LinePoints = ({
                     key: point.id,
                     data: point,
                     style: {
-                        x: spring(point.position.x, springConfig),
-                        y: spring(point.position.y, springConfig),
+                        x: spring(point.x, springConfig),
+                        y: spring(point.y, springConfig),
                         size: spring(size, springConfig),
                     },
                 }
