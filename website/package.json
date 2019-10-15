@@ -6,6 +6,7 @@
   "dependencies": {
     "@nivo/bar": "0.59.2",
     "@nivo/bullet": "0.59.2",
+    "@nivo/brush": "0.59.0",
     "@nivo/bump": "0.59.1",
     "@nivo/calendar": "0.59.1",
     "@nivo/chord": "0.59.1",

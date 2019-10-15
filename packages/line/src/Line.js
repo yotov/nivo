@@ -10,6 +10,10 @@ import React, { Fragment, useState, useMemo } from 'react'
 import { withContainer, useDimensions, useTheme, SvgWrapper, CartesianMarkers } from '@nivo/core'
 import { useInheritedColor } from '@nivo/colors'
 import { Axes, Grid } from '@nivo/axes'
+import { Brush, createBrushPointsFilter } from "@nivo/brush";
+import { scaleTime, scaleLinear } from 'd3-scale'
+import { area, curveMonotoneX } from 'd3-shape'
+import { brushX } from 'd3-brush'
 import { BoxLegendSvg } from '@nivo/legends'
 import { Crosshair } from '@nivo/tooltip'
 import { useLine } from './hooks'
@@ -19,6 +23,17 @@ import Lines from './Lines'
 import Slices from './Slices'
 import Points from './LinePoints'
 import Mesh from './Mesh'
+import { computeXYScalesForSeries } from '@nivo/scales'
+
+const CONTEXT_HEIGHT = 40;
+const brushFilter = createBrushPointsFilter(p => [p.x, p.y]);
+
+const getDataSlice = (data, { start, end } = { start: null, end: null }) => {
+    if (start && end) {
+        return data.map(({ data: d, ...rest }) => ({ ...rest, data: d.slice(start, end) }));
+    }
+    return data;
+}
 
 const Line = props => {
     const {
@@ -91,15 +106,15 @@ const Line = props => {
         height,
         partialMargin
     )
-
+    const [dataSlice, setDataSlice] = useState({ selection: null, start: null, end: null });
     const { lineGenerator, areaGenerator, series, xScale, yScale, slices, points } = useLine({
-        data,
+        data: getDataSlice(data, dataSlice),
         xScale: xScaleSpec,
         xFormat,
         yScale: yScaleSpec,
         yFormat,
         width: innerWidth,
-        height: innerHeight,
+        height: innerHeight - CONTEXT_HEIGHT,
         colors,
         curve,
         areaBaselineValue,
@@ -107,6 +122,28 @@ const Line = props => {
         pointBorderColor,
         enableSlices,
     })
+
+    const { lineGenerator: brushLineGenerator,
+        areaGenerator: brushAreaGenerator,
+        series: brushSeries,
+        xScale: brushXScale,
+        yScale: brushYScale,
+        slices: brushSlices,
+        points: brushPoints } = useLine({
+            data: data,
+            xScale: xScaleSpec,
+            xFormat,
+            yScale: yScaleSpec,
+            yFormat,
+            width: innerWidth,
+            height: innerHeight - CONTEXT_HEIGHT,
+            colors,
+            curve,
+            areaBaselineValue,
+            pointColor,
+            pointBorderColor,
+            enableSlices,
+        })
 
     const theme = useTheme()
     const getPointColor = useInheritedColor(pointColor, theme)
@@ -127,13 +164,41 @@ const Line = props => {
         [series]
     )
 
+    const handleBrushEnd = selection => {
+        const pointsInSelection = brushFilter(selection, points);
+        if (pointsInSelection.length > 0) {
+            setDataSlice({
+                selection,
+                start: (dataSlice.start || 0) + pointsInSelection[0].index,
+                end: dataSlice.end
+                    ? dataSlice.end - (points.length - pointsInSelection[pointsInSelection.length - 1].index)
+                    : pointsInSelection[pointsInSelection.length - 1].index
+            })
+        }
+    };
+
+    const handleBrushEnd2 = selection => {
+        const pointsInSelection = brushFilter(selection, brushPoints);
+
+        console.log(selection);
+        console.log(pointsInSelection);
+        if (pointsInSelection.length > 0) {
+
+            setDataSlice({
+                selection,
+                start: pointsInSelection[0].index,
+                end: pointsInSelection[pointsInSelection.length - 1].index
+            })
+        }
+    };
+
     const layerById = {
         grid: (
             <Grid
                 key="grid"
                 theme={theme}
                 width={innerWidth}
-                height={innerHeight}
+                height={innerHeight - CONTEXT_HEIGHT}
                 xScale={enableGridX ? xScale : null}
                 yScale={enableGridY ? yScale : null}
                 xValues={gridXValues}
@@ -145,7 +210,7 @@ const Line = props => {
                 key="markers"
                 markers={markers}
                 width={innerWidth}
-                height={innerHeight}
+                height={innerHeight - CONTEXT_HEIGHT}
                 xScale={xScale}
                 yScale={yScale}
                 theme={theme}
@@ -157,7 +222,7 @@ const Line = props => {
                 xScale={xScale}
                 yScale={yScale}
                 width={innerWidth}
-                height={innerHeight}
+                height={innerHeight - CONTEXT_HEIGHT}
                 theme={theme}
                 top={axisTop}
                 right={axisRight}
@@ -178,7 +243,7 @@ const Line = props => {
                 key={`legend.${i}`}
                 {...legend}
                 containerWidth={innerWidth}
-                containerHeight={innerHeight}
+                containerHeight={innerHeight - CONTEXT_HEIGHT}
                 data={legend.data || legendData}
                 theme={theme}
             />
@@ -204,7 +269,7 @@ const Line = props => {
                 slices={slices}
                 axis={enableSlices}
                 debug={debugSlices}
-                height={innerHeight}
+                height={innerHeight - CONTEXT_HEIGHT}
                 tooltip={sliceTooltip}
                 current={currentSlice}
                 setCurrent={setCurrentSlice}
@@ -230,13 +295,64 @@ const Line = props => {
         )
     }
 
+    layerById.brush = (
+        <Brush
+            width={innerWidth}
+            height={innerHeight - CONTEXT_HEIGHT}
+            onBrushEnd={handleBrushEnd}
+            fillColor="blue"
+        />)
+
+
+    const x2 = scaleLinear().domain([0, 100]).range([0, innerWidth]);
+    const y2 = scaleLinear().range([CONTEXT_HEIGHT, 0]);
+    // const xAxis2 = axisBottom(x2);
+    const area2 = area()
+        .curve(curveMonotoneX)
+        .x(d => x2(d.x))
+        .y0(CONTEXT_HEIGHT)
+        .y1(d => y2(d.y));
+
+    function brushed() {
+        if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
+        var s = d3.event.selection || x2.range();
+        x.domain(s.map(x2.invert, x2));
+    }
+
+    layerById.context = (
+        <g className="context" style={{ transform: `translate(0, ${innerHeight}px)` }}>
+            <path fill="steelblue" d={area2(data[0].data)}></path>
+            <Axes
+                key="axes"
+                xScale={brushXScale}
+                yScale={brushYScale}
+                width={innerWidth}
+                height={CONTEXT_HEIGHT}
+                theme={theme}
+                top={null}
+                right={null}
+                bottom={axisBottom}
+                left={null}
+            />
+            <Brush
+                width={innerWidth}
+                height={CONTEXT_HEIGHT}
+                onBrushEnd={handleBrushEnd2}
+                showSelectionAlways={dataSlice.selection}
+            />
+        </g>
+    )
+    !layers.includes('brush') && layers.push('brush');
+    !layers.includes('context') && layers.push('context');
+
+
     if (isInteractive && enableCrosshair) {
         if (currentPoint !== null) {
             layerById.crosshair = (
                 <Crosshair
                     key="crosshair"
                     width={innerWidth}
-                    height={innerHeight}
+                    height={innerHeight - CONTEXT_HEIGHT}
                     x={currentPoint.x}
                     y={currentPoint.y}
                     type={crosshairType}
@@ -248,7 +364,7 @@ const Line = props => {
                 <Crosshair
                     key="crosshair"
                     width={innerWidth}
-                    height={innerHeight}
+                    height={innerHeight - CONTEXT_HEIGHT}
                     x={currentSlice.x}
                     y={currentSlice.y}
                     type={enableSlices}
@@ -263,7 +379,7 @@ const Line = props => {
                 key="mesh"
                 points={points}
                 width={innerWidth}
-                height={innerHeight}
+                height={innerHeight - CONTEXT_HEIGHT}
                 margin={margin}
                 current={currentPoint}
                 setCurrent={setCurrentPoint}
@@ -286,7 +402,7 @@ const Line = props => {
                             {layer({
                                 ...props,
                                 innerWidth,
-                                innerHeight,
+                                innerHeight: innerHeight - CONTEXT_HEIGHT,
                                 series,
                                 slices,
                                 points,

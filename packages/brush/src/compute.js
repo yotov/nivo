@@ -15,8 +15,8 @@ export const getCursorPositionFromElement = (el, event) => {
 }
 
 export const rectContainsPoint = (x, y, width, height, pointX, pointY) => {
-    return x <= pointX && pointX <= x + width
-        && y <= pointY && pointY <= y + height
+    return x <= pointX && pointX <= x + width;
+    //&& y <= pointY && pointY <= y + height
 }
 
 export const createBrushPointsFilter = getPosition => (selection, points) => {

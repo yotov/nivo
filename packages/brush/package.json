@@ -1,6 +1,6 @@
 {
   "name": "@nivo/brush",
-  "version": "0.50.0",
+  "version": "0.59.0",
   "license": "MIT",
   "author": {
     "name": "Raphaël Benitte",
@@ -10,23 +10,24 @@
     "nivo",
     "dataviz",
     "react",
+    "d3",
     "charts",
     "brushing"
   ],
-  "main": "./index.js",
+  "main": "./dist/nivo-brush.cjs.js",
+  "module": "./dist/nivo-brush.esm.js",
   "files": [
     "README.md",
-    "index.js",
+    "LICENSE.md",
     "index.d.ts",
-    "cjs/",
-    "umd/"
+    "dist/"
   ],
   "dependencies": {
     "recompose": "^0.26.0"
   },
   "peerDependencies": {
-    "prop-types": "^15.5.10",
-    "react": ">= 16.2.0 < 17.0.0"
+    "prop-types": ">= 15.5.10 < 16.0.0",
+    "react": ">= 16.8.4 < 17.0.0"
   },
   "publishConfig": {
     "access": "public"

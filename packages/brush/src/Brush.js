@@ -32,7 +32,7 @@ const cursors = {
     [STATE_RESIZING_Y]: 'row-resize',
 }
 
-const noop = () => {}
+const noop = () => { }
 
 export default class Brush extends Component {
     static propTypes = {
@@ -58,6 +58,8 @@ export default class Brush extends Component {
         onBrushStart: noop,
         onBrushUpdate: noop,
         onBrushEnd: noop,
+
+        fillColor: 'green',
     }
 
     state = {
@@ -243,24 +245,28 @@ export default class Brush extends Component {
 
         this.setState({
             mode: STATE_IDLE,
+            selection: false,
         })
     }
 
     render() {
-        const { width, height } = this.props
+        const { width, height, fillColor, showSelectionAlways = false } = this.props
         const { mode, selection } = this.state
 
         const cursor = cursors[mode]
 
         let selectionPreview = null
-        if (selection) {
+        if (showSelectionAlways || selection) {
+            const selectionX = selection ? selection.x : showSelectionAlways.x;
+            const selectionWidth = selection ? selection.width : showSelectionAlways.width;
             selectionPreview = (
-                <g transform={`translate(${selection.x},${selection.y})`}>
+                // <g transform={`translate(${selection.x},${selection.y})`}>
+                <g transform={`translate(${selectionX},0)`}>
                     <rect
-                        width={selection.width}
-                        height={selection.height}
-                        fill="none"
-                        stroke="red"
+                        width={selectionWidth}
+                        height={height}
+                        fill="rgb(63, 63, 63, 0.2)"
+                        stroke={fillColor}
                         strokeWidth={1}
                     />
                 </g>
@@ -274,7 +280,7 @@ export default class Brush extends Component {
                     ref={this.setElement}
                     width={width}
                     height={height}
-                    fill="red"
+                    fill={fillColor}
                     opacity={0}
                     onMouseDown={this.handleMouseDown}
                     onMouseMove={this.handleMouseMove}
