@@ -11,8 +11,6 @@ import { withContainer, useDimensions, useTheme, SvgWrapper, CartesianMarkers } 
 import { useInheritedColor } from '@nivo/colors'
 import { Axes, Grid } from '@nivo/axes'
 import { Brush, createBrushPointsFilter } from "@nivo/brush";
-import { scaleTime, scaleLinear } from 'd3-scale'
-import { area, curveMonotoneX } from 'd3-shape'
 import { brushX } from 'd3-brush'
 import { BoxLegendSvg } from '@nivo/legends'
 import { Crosshair } from '@nivo/tooltip'
@@ -304,26 +302,9 @@ const Line = props => {
             fillColor="blue"
         />)
 
-
-    const firstSeries = data[0].data;
-    const x2 = scaleLinear().domain([firstSeries[0].x, firstSeries[firstSeries.length - 1].x]).range([0, innerWidth]);
-    const y2 = scaleLinear().domain([0, 10]).range([CONTEXT_HEIGHT, 0]);
-
-    const area2 = area()
-        .curve(curveMonotoneX)
-        .x(d => x2(d.x))
-        .y0(CONTEXT_HEIGHT)
-        .y1(d => y2(d.y));
-
-    function brushed() {
-        if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
-        var s = d3.event.selection || x2.range();
-        x.domain(s.map(x2.invert, x2));
-    }
-
     layerById.context = (
         <g className="context" style={{ transform: `translate(0, ${innerHeight}px)` }}>
-            <path fill="steelblue" d={area2(data[0].data)}></path>
+            <path fill="steelblue" d={brushAreaGenerator(data[0].data)} />
             <Axes
                 key="axes"
                 xScale={brushXScale}
