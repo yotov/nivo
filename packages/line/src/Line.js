@@ -134,7 +134,7 @@ const Line = props => {
             yScale: yScaleSpec,
             yFormat,
             width: innerWidth,
-            height: innerHeight - CONTEXT_HEIGHT,
+            height: CONTEXT_HEIGHT,
             colors,
             curve,
             areaBaselineValue,
@@ -304,7 +304,7 @@ const Line = props => {
 
     layerById.context = (
         <g className="context" style={{ transform: `translate(0, ${innerHeight}px)` }}>
-            <path fill="steelblue" d={brushAreaGenerator(data[0].data)} />
+            <path fill="steelblue" d={brushAreaGenerator(brushSeries[0].data.map(d => d.position))} />
             <Axes
                 key="axes"
                 xScale={brushXScale}
