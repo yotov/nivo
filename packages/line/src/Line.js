@@ -291,6 +291,7 @@ const Line = props => {
                 label={pointLabel}
                 labelFormat={pointLabelFormat}
                 labelYOffset={pointLabelYOffset}
+                theme={theme}
             />
         )
     }
@@ -304,7 +305,8 @@ const Line = props => {
         />)
 
 
-    const x2 = scaleLinear().domain([0, 100]).range([0, innerWidth]);
+    const firstSeries = data[0].data;
+    const x2 = scaleLinear().domain([firstSeries[0].x, firstSeries[firstSeries.length - 1].x]).range([0, innerWidth]);
     const y2 = scaleLinear().domain([0, 10]).range([CONTEXT_HEIGHT, 0]);
 
     const area2 = area()
