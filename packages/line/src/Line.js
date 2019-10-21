@@ -305,8 +305,8 @@ const Line = props => {
 
 
     const x2 = scaleLinear().domain([0, 100]).range([0, innerWidth]);
-    const y2 = scaleLinear().range([CONTEXT_HEIGHT, 0]);
-    // const xAxis2 = axisBottom(x2);
+    const y2 = scaleLinear().domain([0, 10]).range([CONTEXT_HEIGHT, 0]);
+
     const area2 = area()
         .curve(curveMonotoneX)
         .x(d => x2(d.x))
