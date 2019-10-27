@@ -12,6 +12,7 @@
     "type": "git",
     "url": "git://github.com/plouc/nivo"
   },
+  "publishConfig": { "registry": "https://npm.pkg.github.com/" },
   "author": {
     "name": "Raphaël Benitte",
     "url": "https://github.com/plouc"
